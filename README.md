@@ -32,5 +32,5 @@ for creating a DataSet pipeline using the tensorflow API to feed the videos into
 
 ### References
 Some of the models and code are original, while some are based on previous work:
-> i3d models are based on work as described in <a href="https://arxiv.org/abs/1409.4842">Quo Vadis</a> by Szegedy et al. The original repository with their code can be found <a href="https://github.com/deepmind/kinetics-i3d">here</a>.
-> s3d models are based on the work done by Xie et al. in <a href="https://arxiv.org/abs/1712.04851">Rethinking Spatiotemporal Feature Learning For Video Understanding</a>. The authors do not provide any public code implementing their models. 
+1. i3d models are based on work as described in <a href="https://arxiv.org/abs/1409.4842">Quo Vadis</a> by Szegedy et al. The original repository with their code can be found <a href="https://github.com/deepmind/kinetics-i3d">here</a>.
+2. s3d models are based on the work done by Xie et al. in <a href="https://arxiv.org/abs/1712.04851">Rethinking Spatiotemporal Feature Learning For Video Understanding</a>. The authors do not provide any public code implementing their models. 
