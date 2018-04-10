@@ -1,3 +1,4 @@
+config/*
 .*.swp
 .DS_Store
 *.ipynb
