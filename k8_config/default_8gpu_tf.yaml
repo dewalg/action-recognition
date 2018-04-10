@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: lsar-8gpu-pod
+spec:
+  containers:
+  - name: lsar-8gpu-container
+    image: gcr.io/tensorflow/tensorflow:latest-gpu
+    imagePullPolicy: Always
+    args: ["sleep", "36500000"]
+    resources:
+      limits:
+        nvidia.com/gpu: 8
+    volumeMounts:
+    - mountPath: /action-recognition
+      name: action-recognition
+  volumes:
+    - name: action-recognition
+      gitRepo:
+        repository: "https://github.com/dewalg/action-recognition.git"
