@@ -1,0 +1,9 @@
+.*.swp
+.DS_Store
+*.ipynb
+.idea/
+**/log
+**/tmp
+*.py[cod]
+*$py.class
+__pycache__/
