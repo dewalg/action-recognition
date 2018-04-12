@@ -1,7 +1,5 @@
 import argparse
-import fnmatch
 import glob
-import json
 import os
 import shutil
 import subprocess
@@ -191,6 +189,6 @@ if __name__ == '__main__':
                    help=('This will be the format for the '
                          'filename of trimmed videos: '
                          'videoid_%0xd(start_time)_%0xd(end_time).mp4'))
-    p.add_argument('-n', '--num-jobs', type=int, default=24)
+    p.add_argument('-n', '--num-jobs', type=int, default=10)
     p.add_argument('-t', '--tmp-dir', type=str, default='~/tmp/kinetics')
     main(**vars(p.parse_args()))
