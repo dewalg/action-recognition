@@ -22,7 +22,6 @@ def main(DATA_DIR, INF_OUT, inf_categories):
             sys.exit(0)
 
         label_path = os.path.join(DATA_DIR, label)
-        label_path = str(label_path).replace(' ', '\ ')
         dirs_list = [dir_name for dir_name in os.listdir(label_path) if os.path.isdir(os.path.join(label_path, dir_name))]
         for dir in dirs_list:
             dir_path = os.path.join(label_path, dir)
