@@ -24,6 +24,7 @@ def main(DATA_DIR, INF_OUT, inf_categories):
 
         for video in glob.glob(os.path.join(label, "*.mp4")):
             filepath = os.path.splitext(video)[0]
+            filepath.replace("/-", "/")
             all_vids.append(filepath)
 
     random.shuffle(all_vids)
