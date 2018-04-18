@@ -25,7 +25,6 @@ def main(DATA_DIR, INF_OUT, inf_categories):
         dirs_list = [dir_name for dir_name in os.listdir(label_path) if os.path.isdir(os.path.join(label_path, dir_name))]
         for dir in dirs_list:
             dir_path = os.path.join(label_path, dir)
-            dir_path = str(dir_path).replace(' ', '\ ')
             all_vids.append(dir_path)
 
     random.shuffle(all_vids)
