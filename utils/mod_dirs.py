@@ -1,4 +1,5 @@
 import os
+import subprocess
 from tqdm import tqdm
 from joblib import Parallel, delayed
 from configparser import ConfigParser, ExtendedInterpolation
@@ -20,15 +21,12 @@ def mod_dirs(dir, label_path):
     dir_path = str(dir_path).replace(' ', '\ ')
     mod_path = str(mod_path).replace(' ', '\ ')
     command = "mv " + dir_path + " " + mod_path
-    print ('Command => ' + command)
-
-    # command = "ffmpeg -i " + video + " -r 25.0 " + dest
-    # proc = subprocess.Popen(
-    #     command,
-    #     shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-    #     cwd='.'
-    # )
-    # out, err = proc.communicate()
+    proc = subprocess.Popen(
+        command,
+        shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+        cwd='.'
+    )
+    out, err = proc.communicate()
 
 
 def main():
@@ -40,6 +38,7 @@ def main():
     4. change pixel values to be [-1, 1]
     '''
     os.chdir(dataset_dir)
+    change_count = 0
     for label in tqdm(os.listdir()):
         if label.startswith("."):
             continue
