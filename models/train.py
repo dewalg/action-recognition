@@ -1,7 +1,7 @@
 import sys
 import os
 import time
-import resnet_s3d_50
+from s3dv3 import s3dv3_top_heavy
 import tensorflow as tf
 from pipeline import Pipeline
 from configparser import ConfigParser, ExtendedInterpolation
@@ -32,7 +32,6 @@ CHECKPOINT_PATHS = {
 LR = config['hp'].getfloat('lr')
 TMPDIR = config['paths']['tmpdir']
 LOGDIR = config['paths']['logdir']
-# THROUGH_PUT_ITER = 5
 SAVE_ITER = config['iter'].getint('save_iter')
 VAL_ITER = config['iter'].getint('val_iter')
 DISPLAY_ITER = config['iter'].getint('display_iter')
@@ -42,7 +41,7 @@ SHUFFLE_SIZE = config['iter'].getint('shuffle_buffer')
 # build the model
 def inference(rgb_inputs):
     with tf.variable_scope('RGB'):
-        rgb_model = resnet_s3d_50.ResNet(
+        rgb_model = s3dv3_top_heavy.s3d(
             NUM_CLASSES, spatial_squeeze=True, final_endpoint='Logits')
         rgb_logits, _ = rgb_model(rgb_inputs, is_training=True, dropout_keep_prob=DROPOUT_KEEP_PROB)
     return rgb_logits
