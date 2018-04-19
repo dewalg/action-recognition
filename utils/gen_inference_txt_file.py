@@ -1,5 +1,4 @@
 import os
-import glob
 import random
 from configparser import ConfigParser, ExtendedInterpolation
 import sys
@@ -22,15 +21,17 @@ def main(DATA_DIR, INF_OUT, inf_categories):
             print(label + " not a category")
             sys.exit(0)
 
-        for video in glob.glob(os.path.join(label, "*.mp4")):
-            filepath = os.path.splitext(video)[0]
-            all_vids.append(filepath)
+        label_path = os.path.join(DATA_DIR, label)
+        dirs_list = [dir_name for dir_name in os.listdir(label_path) if os.path.isdir(os.path.join(label_path, dir_name))]
+        for dir in dirs_list:
+            dir_path = os.path.join(label_path, dir)
+            all_vids.append(dir_path)
 
     random.shuffle(all_vids)
     with open(os.path.join(OUTPUT_DIR, INF_OUT), 'w') as f:
         for path in all_vids:
-            if os.listdir(os.path.join(DATA_DIR, path)):
-                f.write(os.path.join(DATA_DIR, path) + "\n")
+            if os.listdir(path):
+                f.write(path + "\n")
 
 
 if __name__ == '__main__':

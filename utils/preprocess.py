@@ -9,16 +9,13 @@ config = ConfigParser(interpolation=ExtendedInterpolation())
 config.read('../config/config.ini')
 
 ### GLOBALS
-# dataset_dir = '/datasets/home/71/671/cs291dag/MiniKinetics/train/'
-dataset_dir = config['paths']['train_data']
-###
+dataset_dir = config['paths']['val_data']
 
 
 def createJPGs(video, label_path):
     '''
     creates the jpegs by calling the ffmpeg
     '''
-#    print('here: ' + video)
     dest_name = os.path.splitext(video)[0]
     if dest_name.startswith('-'):
         dest_name = dest_name[1:]
@@ -53,7 +50,8 @@ def main():
     4. change pixel values to be [-1, 1]
     '''
     os.chdir(dataset_dir)
-    for label in tqdm(os.listdir()):
+    pre3_dirs = os.listdir()
+    for label in tqdm(pre3_dirs):
         if label.startswith("."):
             continue
 
