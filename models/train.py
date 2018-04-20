@@ -111,11 +111,11 @@ if __name__ == '__main__':
     tower_logits_labels = []
 
     train_queue = train_pipeline.get_dataset().shuffle(buffer_size=SHUFFLE_SIZE).batch(BATCH_SIZE)
-    train_iterator = tf.contrib.data.Iterator.from_structure(train_queue.output_types, train_queue.output_shapes)
+    train_iterator = tf.data.Iterator.from_structure(train_queue.output_types, train_queue.output_shapes)
     train_init_op = train_iterator.make_initializer(train_queue)
 
     val_queue = val_pipeline.get_dataset().shuffle(buffer_size=SHUFFLE_SIZE).batch(BATCH_SIZE)
-    val_iterator = tf.contrib.data.Iterator.from_structure(val_queue.output_types, val_queue.output_shapes)
+    val_iterator = tf.data.Iterator.from_structure(val_queue.output_types, val_queue.output_shapes)
     val_init_op = val_iterator.make_initializer(val_queue)
 
     with tf.variable_scope(tf.get_variable_scope()):
