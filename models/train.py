@@ -1,10 +1,11 @@
 import sys
 import os
 import time
-from s3dv3 import s3dv3_top_heavy
+from i3d import i3d
 import tensorflow as tf
 from pipeline import Pipeline
 from configparser import ConfigParser, ExtendedInterpolation
+from comet_ml import Experiment
 
 config = ConfigParser(interpolation=ExtendedInterpolation())
 config.read('../config/config.ini')
@@ -41,7 +42,7 @@ SHUFFLE_SIZE = config['iter'].getint('shuffle_buffer')
 # build the model
 def inference(rgb_inputs):
     with tf.variable_scope('RGB'):
-        rgb_model = s3dv3_top_heavy.s3d(
+        rgb_model = i3d.InceptionI3d(
             NUM_CLASSES, spatial_squeeze=True, final_endpoint='Logits')
         rgb_logits, _ = rgb_model(rgb_inputs, is_training=True, dropout_keep_prob=DROPOUT_KEEP_PROB)
     return rgb_logits
@@ -98,6 +99,19 @@ def get_true_counts(tower_logits_labels):
 
 
 if __name__ == '__main__':
+
+    hyper_params = {"learning_rate": LR,
+                    "num_classes": NUM_CLASSES,
+                    "num_frames": NUM_FRAMES,
+                    "dropout_keep_prob": DROPOUT_KEEP_PROB,
+                    "batch_size": BATCH_SIZE,
+                    "shuffle_size": SHUFFLE_SIZE,
+                    }
+
+    """  this is user-sensitive API key. Change it to see logs in your comet-ml """
+    experiment = Experiment(api_key="4acjBCJZHN986z8btjC23clVN", project_name="lsar-i3d")
+    experiment.log_multiple_params(hyper_params)
+    """ =================================================================== """
     train_pipeline = Pipeline(TRAIN_DATA, CLS_DICT_FP)
     val_pipeline = Pipeline(VAL_DATA, CLS_DICT_FP)
     NUM_VAL_VIDS = val_pipeline.getNumVids()
@@ -155,6 +169,7 @@ if __name__ == '__main__':
 
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
+        experiment.set_model_graph(sess.graph)
 
         # rgb_def_state = get_pretrained_save_state()
         ckpt = tf.train.get_checkpoint_state(ckpt_path)
@@ -189,11 +204,12 @@ if __name__ == '__main__':
                             tf.Summary.Value(tag="train_loss", simple_value=loss_val)
                         ])
                         summary_writer.add_summary(loss_summ, it)
+                        # logging into comet-ml
+                        experiment.log_metric("train_loss", loss_val, step=it)
 
                     if it % SAVE_ITER == 0 and it > 0:
                         saver.save(sess, os.path.join(ckpt_path, 'model_ckpt'), it)
 
-                    ### PERFORM VALIDATION
                     if it % VAL_ITER == 0 and it > 0:
                         sess.run(val_init_op)
                         val_start = time.time()
@@ -214,6 +230,8 @@ if __name__ == '__main__':
                             tf.Summary.Value(tag="val_acc", simple_value=acc)
                         ])
                         summary_writer.add_summary(acc_summ, it)
+                        # logging into comet-ml
+                        experiment.log_metric("val_acc", acc, step=it)
                         # add val loss to summary
                         val_loss = val_loss / int(NUM_VAL_VIDS / NUM_GPUS / BATCH_SIZE)
                         tf.logging.info('val loss: %f', val_loss)
@@ -221,6 +239,8 @@ if __name__ == '__main__':
                             tf.Summary.Value(tag="val_loss", simple_value=val_loss)
                         ])
                         summary_writer.add_summary(val_loss_summ, it)
+                        # logging into comet-ml
+                        experiment.log_metric("val_loss", val_loss, step=it)
                         val_time = time.time() - val_start
                         saver.save(sess, os.path.join(ckpt_path, 'model_ckpt'), it)
 
@@ -244,7 +264,5 @@ if __name__ == '__main__':
                 except Exception as e:
                     print(e)
                     sys.exit(1)
-
-
 
         summary_writer.close()
