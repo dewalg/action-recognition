@@ -10,9 +10,9 @@ from configparser import ConfigParser, ExtendedInterpolation
 config = ConfigParser(interpolation=ExtendedInterpolation())
 config.read('../config/config.ini')
 
-NUM_CLASSES = 50
+NUM_CLASSES = 400
 
-CLS_DICT_FP = config['paths']['inf_cat']
+CLS_DICT_FP = config['paths']['cls_dict_fp']
 DATA = config['paths']['inference_fp']
 
 rgb_ckpt = config['checkpoint']['rgb']
@@ -33,35 +33,42 @@ if __name__ == '__main__':
     data_pipeline = Pipeline(DATA, CLS_DICT_FP)
     NUM_VAL_VIDS = data_pipeline.getNumVids()
 
-    train_queue = data_pipeline.get_dataset()
-    train_iterator = tf.contrib.data.Iterator.from_structure(train_queue.output_types, train_queue.output_shapes)
+    train_queue = data_pipeline.get_dataset().batch(1)
+    train_iterator = tf.data.Iterator.from_structure(train_queue.output_types, train_queue.output_shapes)
     train_init_op = train_iterator.make_initializer(train_queue)
 
     rgbs, label = train_iterator.get_next()
     logits, preds = inference(rgbs)
 
+    rgb_variable_map = {}
+    for variable in tf.global_variables():
+        if variable.name.split('/')[0] == 'RGB':
+            rgb_variable_map[variable.name.replace(':0', '')] = variable
+    rgb_saver = tf.train.Saver(var_list=rgb_variable_map, reshape=True)
+
     with tf.Session() as sess:
+        tf.logging.set_verbosity(tf.logging.DEBUG)
+
+        tf.logging.info('trying to restore')
         sess.run(tf.global_variables_initializer())
-        rgb_variable_map = {}
-        for variable in tf.global_variables():
-            if variable.name.split('/')[0] == 'RGB':
-                rgb_variable_map[variable.name.replace(':0', '')] = variable
-        rgb_saver = tf.train.Saver(var_list=rgb_variable_map, reshape=True)
         rgb_saver.restore(sess, rgb_ckpt)
+        tf.logging.info('RGB checkpoint restored')
 
         sess.run(train_init_op)
-        preds = []
+        predictions = []
         labels = []
         while True:
             try:
-                out_logits, out_preds, label = sess.run([logits, preds, label])
+                out_logits, out_preds, out_label = sess.run([logits, preds, label])
+#                print("HERE: " + str(out_preds.shape))
 
+                tf.logging.info('while loop ' + str(out_label[0]))
                 out_logits = out_logits[0]
                 out_preds = out_preds[0]
-                sorted = np.argsort(out_preds)[::-1]
-                cls_idx = sorted[0]
-                preds.append(cls_idx)
-                labels.append(label)
+                sorted_idx = np.argsort(out_preds)[::-1]
+                cls_idx = sorted_idx[0]
+                predictions.append(cls_idx)
+                labels.append(out_label[0])
 
             except tf.errors.OutOfRangeError as e:
                 break
@@ -69,7 +76,7 @@ if __name__ == '__main__':
                 print(e)
                 sys.exit(1)
 
-        confusion = tf.confusion_matrix(labels=labels, predictions=preds, num_classes=NUM_CLASSES)
+        confusion = tf.confusion_matrix(labels=labels, predictions=predictions, num_classes=NUM_CLASSES)
         con = sess.run(confusion)
         print(con)
         np.save('confusion.npy', con)
