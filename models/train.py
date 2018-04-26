@@ -127,142 +127,121 @@ if __name__ == '__main__':
     train_queue = train_pipeline.get_dataset().shuffle(buffer_size=SHUFFLE_SIZE).batch(BATCH_SIZE)
     train_iterator = tf.data.Iterator.from_structure(train_queue.output_types, train_queue.output_shapes)
     train_init_op = train_iterator.make_initializer(train_queue)
+    print('TRAIN QUEUE = ', train_queue.output_types, 'TRAIN TYPE = ', train_queue.output_shapes)
 
     val_queue = val_pipeline.get_dataset().shuffle(buffer_size=SHUFFLE_SIZE).batch(BATCH_SIZE)
     val_iterator = tf.data.Iterator.from_structure(val_queue.output_types, val_queue.output_shapes)
     val_init_op = val_iterator.make_initializer(val_queue)
+    print('VALID QUEUE = ', val_queue.output_types, 'TRAIN TYPE = ', val_queue.output_shapes)
 
-    with tf.variable_scope(tf.get_variable_scope()):
-        for i in range(NUM_GPUS):
-            with tf.name_scope('tower_%d' % i):
-                rgbs, labels = tf.cond(is_training, lambda: train_iterator.get_next(),
-                                              lambda: val_iterator.get_next())
-                with tf.device('/gpu:%d' % i):
-                    loss, logits = tower_inference(rgbs, labels)
-                    tf.get_variable_scope().reuse_variables()
-                    grads = opt.compute_gradients(loss)
-                    tower_grads.append(grads)
-                    tower_losses.append(loss)
-                    tower_logits_labels.append((logits, labels))
-
-        # rgbs, labels = tf.cond(is_training, lambda: train_queue.make_one_shot_iterator().get_next(),
-        #                               lambda: val_queue.make_one_shot_iterator().get_next())
-        # loss, logits = tower_inference(rgbs, labels)
-        # tf.get_variable_scope().reuse_variables()
-        # grads = opt.compute_gradients(loss)
-        # tower_grads.append(grads)
-        # tower_losses.append(loss)
-        # tower_logits_labels.append((logits, labels))
-
-    true_count_op = get_true_counts(tower_logits_labels)
-    avg_loss = tf.reduce_mean(tower_losses)
-    grads = average_gradients(tower_grads)
-    train_op = opt.apply_gradients(grads)
-
-    # saver for fine tuning
-    if not os.path.exists(TMPDIR):
-        os.mkdir(TMPDIR)
-    saver = tf.train.Saver(max_to_keep=3)
-    ckpt_path = os.path.join(TMPDIR, 'ckpt')
-    if not os.path.exists(ckpt_path):
-        os.mkdir(ckpt_path)
-
-    with tf.Session() as sess:
-        sess.run(tf.global_variables_initializer())
-        experiment.set_model_graph(sess.graph)
-
-        # rgb_def_state = get_pretrained_save_state()
-        ckpt = tf.train.get_checkpoint_state(ckpt_path)
-        if ckpt and ckpt.model_checkpoint_path:
-            tf.logging.info('Restoring from: %s', ckpt.model_checkpoint_path)
-            saver.restore(sess, ckpt.all_model_checkpoint_paths[-1])
-        else:
-            tf.logging.info('No checkpoint file found, restoring pretrained weights...')
-            # rgb_def_state.restore(sess, CHECKPOINT_PATHS['rgb_imagenet'])
-            # rgb_def_state.restore(sess, CHECKPOINT_PATHS['rgb'])
-            # tf.logging.info('Restore Complete.')
-
-        # prefetch_threads = tf.train.start_queue_runners(sess=sess, coord=coord)
-
-        summary_writer = tf.summary.FileWriter(LOGDIR, sess.graph)
-        tf.logging.set_verbosity(tf.logging.INFO)
-
-        it = 0
-        last_time = time.time()
-        last_step = 0
-        val_time = 0
-        for epoch in range(MAX_EPOCH):
-            sess.run(train_init_op)
-            while True:
-                # print('==== EPOCH : ' + str(epoch) + ' || iter : ' + str(it))
-                try:
-                    _, loss_val = sess.run([train_op, avg_loss], {is_training: True})
-
-                    if it % DISPLAY_ITER == 0:
-                        tf.logging.info('step %d, loss = %f', it, loss_val)
-                        loss_summ = tf.Summary(value=[
-                            tf.Summary.Value(tag="train_loss", simple_value=loss_val)
-                        ])
-                        summary_writer.add_summary(loss_summ, it)
-                        # logging into comet-ml
-                        experiment.log_metric("train_loss", loss_val, step=it)
-
-                    if it % SAVE_ITER == 0 and it > 0:
-                        saver.save(sess, os.path.join(ckpt_path, 'model_ckpt'), it)
-
-                    if it % VAL_ITER == 0 and it > 0:
-                        sess.run(val_init_op)
-                        val_start = time.time()
-                        tf.logging.info('validating...')
-                        true_count = 0
-                        val_loss = 0
-                        while True:
-                            try:
-                                c, l = sess.run([true_count_op, avg_loss], {is_training: False})
-                                true_count += c
-                                val_loss += l
-                            except tf.errors.OutOfRangeError as e:
-                                break
-                        # add val accuracy to summary
-                        acc = true_count / NUM_VAL_VIDS
-                        tf.logging.info('val accuracy: %f', acc)
-                        acc_summ = tf.Summary(value=[
-                            tf.Summary.Value(tag="val_acc", simple_value=acc)
-                        ])
-                        summary_writer.add_summary(acc_summ, it)
-                        # logging into comet-ml
-                        experiment.log_metric("val_acc", acc, step=it)
-                        # add val loss to summary
-                        val_loss = val_loss / int(NUM_VAL_VIDS / NUM_GPUS / BATCH_SIZE)
-                        tf.logging.info('val loss: %f', val_loss)
-                        val_loss_summ = tf.Summary(value=[
-                            tf.Summary.Value(tag="val_loss", simple_value=val_loss)
-                        ])
-                        summary_writer.add_summary(val_loss_summ, it)
-                        # logging into comet-ml
-                        experiment.log_metric("val_loss", val_loss, step=it)
-                        val_time = time.time() - val_start
-                        saver.save(sess, os.path.join(ckpt_path, 'model_ckpt'), it)
-
-                    # if it % THROUGH_PUT_ITER == 0 and it > 0:
-                    #     duration = time.time() - last_time - val_time
-                    #     steps = it - last_step
-                    #     through_put = steps * NUM_GPUS * BATCH_SIZE / duration
-                    #     tf.logging.info('num examples/sec: %.2f', through_put)
-                    #     through_put_summ = tf.Summary(value=[
-                    #         tf.Summary.Value(tag="through_put", simple_value=through_put)
-                    #     ])
-                    #     summary_writer.add_summary(through_put_summ, it)
-                    #     last_time = time.time()
-                    #     last_step = it
-                    #     val_time = 0
-
-                    it += 1
-
-                except tf.errors.OutOfRangeError as e:
-                    break
-                except Exception as e:
-                    print(e)
-                    sys.exit(1)
-
-        summary_writer.close()
+    # with tf.variable_scope(tf.get_variable_scope()):
+    #     for i in range(NUM_GPUS):
+    #         with tf.name_scope('tower_%d' % i):
+    #             rgbs, labels = tf.cond(is_training, lambda: train_iterator.get_next(), lambda: val_iterator.get_next())
+    #             with tf.device('/gpu:%d' % i):
+    #                 loss, logits = tower_inference(rgbs, labels)
+    #                 tf.get_variable_scope().reuse_variables()
+    #                 grads = opt.compute_gradients(loss)
+    #                 tower_grads.append(grads)
+    #                 tower_losses.append(loss)
+    #                 tower_logits_labels.append((logits, labels))
+    #
+    # true_count_op = get_true_counts(tower_logits_labels)
+    # avg_loss = tf.reduce_mean(tower_losses)
+    # grads = average_gradients(tower_grads)
+    # train_op = opt.apply_gradients(grads)
+    #
+    # # saver for fine tuning
+    # if not os.path.exists(TMPDIR):
+    #     os.mkdir(TMPDIR)
+    # saver = tf.train.Saver(max_to_keep=3)
+    # ckpt_path = os.path.join(TMPDIR, 'ckpt')
+    # if not os.path.exists(ckpt_path):
+    #     os.mkdir(ckpt_path)
+    #
+    # with tf.Session() as sess:
+    #     sess.run(tf.global_variables_initializer())
+    #     experiment.set_model_graph(sess.graph)
+    #
+    #     # rgb_def_state = get_pretrained_save_state()
+    #     ckpt = tf.train.get_checkpoint_state(ckpt_path)
+    #     if ckpt and ckpt.model_checkpoint_path:
+    #         tf.logging.info('Restoring from: %s', ckpt.model_checkpoint_path)
+    #         saver.restore(sess, ckpt.all_model_checkpoint_paths[-1])
+    #     else:
+    #         tf.logging.info('No checkpoint file found, restoring pretrained weights...')
+    #         # rgb_def_state.restore(sess, CHECKPOINT_PATHS['rgb_imagenet'])
+    #         # rgb_def_state.restore(sess, CHECKPOINT_PATHS['rgb'])
+    #         # tf.logging.info('Restore Complete.')
+    #
+    #     # prefetch_threads = tf.train.start_queue_runners(sess=sess, coord=coord)
+    #
+    #     summary_writer = tf.summary.FileWriter(LOGDIR, sess.graph)
+    #     tf.logging.set_verbosity(tf.logging.INFO)
+    #
+    #     it = 0
+    #     last_time = time.time()
+    #     last_step = 0
+    #     val_time = 0
+    #     for epoch in range(MAX_EPOCH):
+    #         sess.run(train_init_op)
+    #         while True:
+    #             # print('==== EPOCH : ' + str(epoch) + ' || iter : ' + str(it))
+    #             try:
+    #                 _, loss_val = sess.run([train_op, avg_loss], {is_training: True})
+    #
+    #                 if it % DISPLAY_ITER == 0:
+    #                     tf.logging.info('step %d, loss = %f', it, loss_val)
+    #                     loss_summ = tf.Summary(value=[
+    #                         tf.Summary.Value(tag="train_loss", simple_value=loss_val)
+    #                     ])
+    #                     summary_writer.add_summary(loss_summ, it)
+    #                     # logging into comet-ml
+    #                     experiment.log_metric("train_loss", loss_val, step=it)
+    #
+    #                 if it % SAVE_ITER == 0 and it > 0:
+    #                     saver.save(sess, os.path.join(ckpt_path, 'model_ckpt'), it)
+    #
+    #                 if it % VAL_ITER == 0 and it > 0:
+    #                     sess.run(val_init_op)
+    #                     val_start = time.time()
+    #                     tf.logging.info('validating...')
+    #                     true_count = 0
+    #                     val_loss = 0
+    #                     while True:
+    #                         try:
+    #                             c, l = sess.run([true_count_op, avg_loss], {is_training: False})
+    #                             true_count += c
+    #                             val_loss += l
+    #                         except tf.errors.OutOfRangeError as e:
+    #                             break
+    #                     # add val accuracy to summary
+    #                     acc = true_count / NUM_VAL_VIDS
+    #                     tf.logging.info('val accuracy: %f', acc)
+    #                     acc_summ = tf.Summary(value=[
+    #                         tf.Summary.Value(tag="val_acc", simple_value=acc)
+    #                     ])
+    #                     summary_writer.add_summary(acc_summ, it)
+    #                     # logging into comet-ml
+    #                     experiment.log_metric("val_acc", acc, step=it)
+    #                     # add val loss to summary
+    #                     val_loss = val_loss / int(NUM_VAL_VIDS / NUM_GPUS / BATCH_SIZE)
+    #                     tf.logging.info('val loss: %f', val_loss)
+    #                     val_loss_summ = tf.Summary(value=[
+    #                         tf.Summary.Value(tag="val_loss", simple_value=val_loss)
+    #                     ])
+    #                     summary_writer.add_summary(val_loss_summ, it)
+    #                     # logging into comet-ml
+    #                     experiment.log_metric("val_loss", val_loss, step=it)
+    #                     val_time = time.time() - val_start
+    #                     saver.save(sess, os.path.join(ckpt_path, 'model_ckpt'), it)
+    #
+    #                 it += 1
+    #
+    #             except tf.errors.OutOfRangeError as e:
+    #                 break
+    #             except Exception as e:
+    #                 print(e)
+    #                 sys.exit(1)
+    #
+    #     summary_writer.close()
