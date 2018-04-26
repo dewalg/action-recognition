@@ -198,14 +198,16 @@ if __name__ == '__main__':
                 try:
                     _, loss_val = sess.run([train_op, avg_loss], {is_training: True})
 
+                    # logging into comet-ml
+                    experiment.log_metric("train_loss", loss_val, step=it)
+                    experiment.set_step(it)
+
                     if it % DISPLAY_ITER == 0:
                         tf.logging.info('step %d, loss = %f', it, loss_val)
                         loss_summ = tf.Summary(value=[
                             tf.Summary.Value(tag="train_loss", simple_value=loss_val)
                         ])
                         summary_writer.add_summary(loss_summ, it)
-                        # logging into comet-ml
-                        experiment.log_metric("train_loss", loss_val, step=it)
 
                     if it % SAVE_ITER == 0 and it > 0:
                         saver.save(sess, os.path.join(ckpt_path, 'model_ckpt'), it)
@@ -239,6 +241,7 @@ if __name__ == '__main__':
                             tf.Summary.Value(tag="val_loss", simple_value=val_loss)
                         ])
                         summary_writer.add_summary(val_loss_summ, it)
+
                         # logging into comet-ml
                         experiment.log_metric("val_loss", val_loss, step=it)
                         val_time = time.time() - val_start
