@@ -7,7 +7,7 @@ from configparser import ConfigParser, ExtendedInterpolation
 config = ConfigParser(interpolation=ExtendedInterpolation())
 config.read('../config/config.ini')
 
-dataset_dir = config['paths']['val_data']
+dataset_dir = config['paths']['train_data']
 
 
 def mod_dirs(dir, label_path):
@@ -47,9 +47,10 @@ def main():
         label_path = os.path.join(dataset_dir, label)
         os.chdir(label_path)
         dirs_list = [dir_name for dir_name in os.listdir(label_path) if dir_name.startswith('-') and os.path.isdir(os.path.join(label_path, dir_name))]
-        # Parallel(n_jobs=-1, verbose=True)(delayed(mod_dirs)(dir, label_path) for dir in dirs_list)
+        Parallel(n_jobs=-1, verbose=True)(delayed(mod_dirs)(dir, label_path) for dir in dirs_list)
         change_count += len(dirs_list)
-        print("CHANGE COUNT ",change_count)
+    
+    print("CHANGE COUNT ",change_count)
 
 
 if __name__ == '__main__':
