@@ -1,4 +1,7 @@
 config/*
+utils/*
+**/__init__.py
+**/.ipynb_checkpoints
 .*.swp
 .DS_Store
 *.ipynb
