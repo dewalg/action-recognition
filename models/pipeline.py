@@ -78,25 +78,27 @@ class Pipeline(object):
 
     def resize_crop(self, img: np.ndarray) -> np.ndarray:
         '''
-        resize the image frame to a random 224 by 224
+        resize the image frame to a random crop_size by crop_size
         '''
 
+        # originally was 256
+        min_dim = 324
         aspect_ratio = float(img.shape[1]) / float(img.shape[0])
         if aspect_ratio <= 1.0:
-            new_w = 256
-            new_h = int(256 / aspect_ratio)
+            new_w = min_dim
+            new_h = int(min_dim / aspect_ratio)
         else:
-            new_h = 256
-            new_w = int(256 * aspect_ratio)
+            new_h = min_dim
+            new_w = int(min_dim * aspect_ratio)
 
         random.seed(datetime.now())
         resize = misc.imresize(img, (new_h, new_w), 'bilinear')
-        wrange = resize.shape[1] - 224
-        hrange = resize.shape[0] - 224
+        wrange = resize.shape[1] - CROP_SIZE
+        hrange = resize.shape[0] - CROP_SIZE
         w_crop = random.randint(0, wrange)
         h_crop = random.randint(0, hrange)
 
-        return resize[h_crop:h_crop + 224, w_crop:w_crop + 224]
+        return resize[h_crop:h_crop + CROP_SIZE, w_crop:w_crop + CROP_SIZE]
 
     def _parse(self, filename):
         frames, label = self.get_frames(filename)

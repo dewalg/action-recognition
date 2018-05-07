@@ -5,8 +5,11 @@ Video Representations" by Vu et al.
 
 # using python 3
 
+import numpy as np
 import tensorflow as tf
 import sonnet as snt
+import keras
+from resnet import inception_resnet_v2
 
 # debug flag for debugging outputs
 _DEBUG = False
@@ -17,12 +20,17 @@ class Resnet:
         self.mem_h = 14
         self.mem_w = 14
         self.df = 256
+        self.model = inception_resnet_v2()
 
     def call(self, inputs):
-        # should return a 14x14x256 tensor
-        return tf.random_normal([self.mem_h, self.mem_w, self.df],
-                                mean=0, stddev=1)
+        # inputs is a 299x299x3 tensor
+        # should return a 17x17x1088 tensor
+        return model.predict(np.array([inputs]))[0]
 
+    def callBatch(self, inputs):
+        # inputs is a dx299x299x3 tensor
+        # should return a dx17x17x1088 tensor
+        return model.predict(inputs)
 
 class Flownet:
     # TODO: plug in Flownet
@@ -63,7 +71,7 @@ class ClockNet(snt.AbstractModule):
         flow = self.flownet.call(self.prev_frame, curr_frame)
 
         # calculate the new memory
-        self.memory = self.phi(self.memory, flow)
+        self.memory = self.bl_sample(self.memory, flow)
 
         # save the prev frame to compute flow for next iteration
         self.prev_frame = self.curr_frame
@@ -80,6 +88,11 @@ class ClockNet(snt.AbstractModule):
         # compute the new memory
         # corresponds to the 'A' function
         self.aggregate(features)
+        
+    
+    def bl_sample(self, before, after):
+        # before, after are the two features that we will
+        # bi-linearly sample. 
 
 
     def build(self, inputs, is_training=False):
