@@ -1,4 +1,5 @@
 config/*
+flownet/checkpoints/*
 .*.swp
 .DS_Store
 *.ipynb
