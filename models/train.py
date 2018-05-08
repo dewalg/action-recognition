@@ -109,7 +109,7 @@ if __name__ == '__main__':
                     }
 
     """  this is user-sensitive API key. Change it to see logs in your comet-ml """
-    experiment = Experiment(api_key="CwfC44eKOZx1oFdva2nDp3P8i", project_name="lsar-i3d")
+    experiment = Experiment(api_key="5t7sqKGYmr76wqaEHqwN0Sqcg", project_name="lsar")
     experiment.log_multiple_params(hyper_params)
     """ =================================================================== """
     train_pipeline = Pipeline(TRAIN_DATA, CLS_DICT_FP)
