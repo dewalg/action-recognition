@@ -71,8 +71,8 @@ class Net(object):
         resize = misc.imresize(img, (new_h, new_w), 'bilinear')
         wrange = resize.shape[1] - CROP_SIZE
         hrange = resize.shape[0] - CROP_SIZE
-        w_crop = random.randint(0, wrange)
-        h_crop = random.randint(0, hrange)
+        w_crop = int(wrange/2)
+        h_crop = int(hrange/2)
 
         return resize[h_crop:h_crop + CROP_SIZE, w_crop:w_crop + CROP_SIZE]
 
@@ -80,8 +80,8 @@ class Net(object):
         input_a = imread(input_a_path)
         input_b = imread(input_b_path)
 
-        # input_a = self.resize_crop(input_a)
-        # input_b = self.resize_crop(input_b)
+        input_a = self.resize_crop(input_a)
+        input_b = self.resize_crop(input_b)
 
         # Convert from RGB -> BGR
         input_a = input_a[..., [2, 1, 0]]
