@@ -16,7 +16,6 @@ _DEBUG = False
 H_f = W_f = 17
 D_f = 1088
 
-
 class Resnet:
     # TODO: plug in resnet
     def __init__(self):
