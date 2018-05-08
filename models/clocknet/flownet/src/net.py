@@ -14,7 +14,7 @@ from datetime import datetime
 from configparser import ConfigParser, ExtendedInterpolation
 
 config = ConfigParser(interpolation=ExtendedInterpolation())
-config.read('../../../../config/config.ini')
+config.read('../../../config/config.ini')
 
 CROP_SIZE = config['hp'].getint('crop_size')
 
