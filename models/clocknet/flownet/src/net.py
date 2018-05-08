@@ -101,6 +101,7 @@ class Net(object):
             'input_b': tf.expand_dims(tf.constant(input_b, dtype=tf.float32), 0),
         }
         predictions = self.model(inputs, training_schedule)
+        if _DEBUG: print("###### PREDICTION KEYS = ", predictions.keys())
         pred_flow = predictions['flow']
 
         saver = tf.train.Saver()
