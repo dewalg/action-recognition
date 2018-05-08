@@ -8,6 +8,9 @@ import tensorflow as tf
 slim = tf.contrib.slim
 
 
+_DEBUG = True
+
+
 class FlowNet2(Net):
 
     def __init__(self, mode=Mode.TRAIN, debug=False):
@@ -17,6 +20,7 @@ class FlowNet2(Net):
 
     def model(self, inputs, training_schedule, trainable=True):
         _, height, width, _ = inputs['input_a'].shape.as_list()
+        if _DEBUG: print('#### DEBUG Input height = ', height,' width = ', width)
         with tf.variable_scope('FlowNet2'):
             # Forward pass through FlowNetCSS and FlowNetSD with weights frozen
             net_css_predictions = self.net_css.model(inputs, training_schedule, trainable=False)
@@ -99,6 +103,8 @@ class FlowNet2(Net):
 
                     flow = tf.image.resize_bilinear(
                         predict_flow0, tf.stack([height, width]), align_corners=True)
+                    if _DEBUG: print('#### DEBUG predict_flow0 = ', predict_flow0.shape)
+                    if _DEBUG: print('#### DEBUG flow = ', flow.shape)
                     return {
                         'predict_flow0': predict_flow0,
                         'flow': flow,
