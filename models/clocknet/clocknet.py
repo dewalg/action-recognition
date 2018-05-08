@@ -9,10 +9,14 @@ import numpy as np
 import tensorflow as tf
 import sonnet as snt
 import keras
-from resnet import inception_resnet_v2
+
+
+from .resnet import inception_resnet_v2
+from .flownet.src import *
 
 # debug flag for debugging outputs
 _DEBUG = False
+
 H_f = W_f = 17
 D_f = 1088
 

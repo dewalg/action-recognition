@@ -16,15 +16,15 @@ class FlowNetC(Net):
 
     def model(self, inputs, training_schedule, trainable=True):
         _, height, width, _ = inputs['input_a'].shape.as_list()
-        divisor = 64
-        adapted_w = int(math.ceil(width/divisor) * divisor)
-        adapted_h = int(math.ceil(height/divisor) * divisor)
-        inputs['input_a'] = tf.image.resize_images(inputs['input_a'], [adapted_h, adapted_w])
-        inputs['input_b'] = tf.image.resize_images(inputs['input_b'], [adapted_h, adapted_w])
-        if _DEBUG: print('#### DEBUG Input height = ', height, ' width = ', width)
-        if _DEBUG: print('#### DEBUG Adapted height = ', adapted_h, ' width = ', adapted_w)
-        height = adapted_h
-        width = adapted_w
+        # divisor = 64
+        # adapted_w = int(math.ceil(width/divisor) * divisor)
+        # adapted_h = int(math.ceil(height/divisor) * divisor)
+        # inputs['input_a'] = tf.image.resize_images(inputs['input_a'], [adapted_h, adapted_w])
+        # inputs['input_b'] = tf.image.resize_images(inputs['input_b'], [adapted_h, adapted_w])
+        # if _DEBUG: print('#### DEBUG Input height = ', height, ' width = ', width)
+        # if _DEBUG: print('#### DEBUG Adapted height = ', adapted_h, ' width = ', adapted_w)
+        # height = adapted_h
+        # width = adapted_w
         with tf.variable_scope('FlowNetC'):
             with slim.arg_scope([slim.conv2d, slim.conv2d_transpose],
                                 # Only backprop this network if trainable
