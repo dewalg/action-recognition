@@ -122,9 +122,9 @@ class Net(object):
         input_a = self.resize_crop(input_a)
         input_b = self.resize_crop(input_b)
 
-        flo = self.compute_flow(input_a, input_b)
-        print('PRINTING FLOW INFORMATION...')
-        print(flo)
+        # flo = self.compute_flow(input_a, input_b)
+        # print('PRINTING FLOW INFORMATION...')
+        # print(flo)
 
         # Convert from RGB -> BGR
         input_a = input_a[..., [2, 1, 0]]
