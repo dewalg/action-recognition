@@ -104,7 +104,7 @@ class FlowNet2(Net):
                                                   activation_fn=None, scope='fuse_interconv0')
 
                     if _DEBUG: print('#### DEBUG fuse_conv2_1 = ', fuse_interconv1.shape)
-                    
+
                     predict_flow0 = slim.conv2d(pad(fuse_interconv0), 2,
                                                 3, activation_fn=None, scope='predict_flow0')
 
