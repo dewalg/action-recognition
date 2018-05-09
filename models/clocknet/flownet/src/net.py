@@ -102,7 +102,7 @@ class Net(object):
         }
         predictions = self.model(inputs, training_schedule)
         if _DEBUG: print("###### PREDICTION KEYS = ", predictions.keys())
-        pred_flow = predictions['flow']
+        pred_flow = predictions['predict_flow4']
 
         saver = tf.train.Saver()
 
