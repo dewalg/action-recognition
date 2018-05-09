@@ -102,7 +102,7 @@ class Net(object):
         }
         predictions = self.model(inputs, training_schedule)
         if _DEBUG: print("###### PREDICTION KEYS = ", predictions.keys())
-        flow = predictions['predict_flow4']
+        flow = predictions['flow']
         pred_flow = tf.image.resize_bilinear(flow, tf.stack([H_f, W_f]), align_corners=True)
 
         saver = tf.train.Saver()
