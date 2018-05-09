@@ -13,7 +13,7 @@ _DEBUG = False
 
 class FlowNet2(Net):
 
-    def __init__(self, mode=Mode.TRAIN, debug=False):
+    def __init__(self, mode=Mode.TEST, debug=False):
         self.net_css = FlowNetCSS(mode, debug)
         self.net_sd = FlowNetSD(mode, debug)
         super(FlowNet2, self).__init__(mode=mode, debug=debug)

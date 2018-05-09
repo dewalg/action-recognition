@@ -76,13 +76,13 @@ class Net(object):
 
         return resize[h_crop:h_crop + CROP_SIZE, w_crop:w_crop + CROP_SIZE]
 
-    def test(self, checkpoint, input_a_path, input_b_path, out_path, save_image=True, save_flo=False):
-        input_a = imread(input_a_path)
-        input_b = imread(input_b_path)
-
-        input_a = self.resize_crop(input_a)
-        input_b = self.resize_crop(input_b)
-
+    def compute_flow(self, input_a, input_b):
+        """
+        computes optical flow using & down samples bi-linearly to h_f & w_f
+        :param input_a: rgb input frame (prev)
+        :param input_b: rgb input frame (curr)
+        :return: h_f x w_f x 2 flow information
+        """
         # Convert from RGB -> BGR
         input_a = input_a[..., [2, 1, 0]]
         input_b = input_b[..., [2, 1, 0]]
@@ -104,6 +104,40 @@ class Net(object):
         if _DEBUG: print("###### PREDICTION KEYS = ", predictions.keys())
         flow = predictions['flow']
         pred_flow = tf.image.resize_bilinear(flow, tf.stack([H_f, W_f]), align_corners=True)
+
+        return pred_flow
+
+    def test(self, checkpoint, input_a_path, input_b_path, out_path, save_image=True, save_flo=False):
+        input_a = imread(input_a_path)
+        input_b = imread(input_b_path)
+
+        input_a = self.resize_crop(input_a)
+        input_b = self.resize_crop(input_b)
+
+        flo = self.compute_flow(input_a, input_b)
+        print('FLOW INFORMATION')
+        print(flo)
+
+        # Convert from RGB -> BGR
+        input_a = input_a[..., [2, 1, 0]]
+        input_b = input_b[..., [2, 1, 0]]
+
+        # Scale from [0, 255] -> [0.0, 1.0] if needed
+        if input_a.max() > 1.0:
+            input_a = input_a / 255.0
+        if input_b.max() > 1.0:
+            input_b = input_b / 255.0
+
+        # TODO: This is a hack, we should get rid of this
+        training_schedule = LONG_SCHEDULE
+
+        inputs = {
+            'input_a': tf.expand_dims(tf.constant(input_a, dtype=tf.float32), 0),
+            'input_b': tf.expand_dims(tf.constant(input_b, dtype=tf.float32), 0),
+        }
+        predictions = self.model(inputs, training_schedule)
+        if _DEBUG: print("###### PREDICTION KEYS = ", predictions.keys())
+        pred_flow = predictions['flow']
 
         saver = tf.train.Saver()
 

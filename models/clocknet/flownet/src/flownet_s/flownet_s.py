@@ -10,7 +10,7 @@ _DEBUG = False
 
 class FlowNetS(Net):
 
-    def __init__(self, mode=Mode.TRAIN, debug=False):
+    def __init__(self, mode=Mode.TEST, debug=False):
         super(FlowNetS, self).__init__(mode=mode, debug=debug)
 
     def model(self, inputs, training_schedule, trainable=True):
