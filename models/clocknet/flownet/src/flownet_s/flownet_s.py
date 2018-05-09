@@ -15,7 +15,13 @@ class FlowNetS(Net):
 
     def model(self, inputs, training_schedule, trainable=True):
         _, height, width, _ = inputs['input_a'].shape.as_list()
-        if _DEBUG: print('#### DEBUG Input height = ', height, ' width = ', width)
+        divisor = 64
+        adapted_w = int(math.ceil(width / divisor) * divisor)
+        adapted_h = int(math.ceil(height / divisor) * divisor)
+        inputs['input_a'] = tf.image.resize_images(inputs['input_a'], [adapted_h, adapted_w])
+        inputs['input_b'] = tf.image.resize_images(inputs['input_b'], [adapted_h, adapted_w])
+        if _DEBUG: print('#### FS = DEBUG Input height = ', height, ' width = ', width)
+        if _DEBUG: print('#### FS = DEBUG Adapted height = ', adapted_h, ' width = ', adapted_w)
         stacked = False
         with tf.variable_scope('FlowNetS'):
             if 'warped' in inputs and 'flow' in inputs and 'brightness_error' in inputs:
@@ -112,12 +118,12 @@ class FlowNetS(Net):
                     flow = tf.image.resize_bilinear(flow,
                                                     tf.stack([height, width]),
                                                     align_corners=True)
-                    if _DEBUG: print('#### DEBUG predict_flow6 = ', predict_flow6.shape)
-                    if _DEBUG: print('#### DEBUG predict_flow5 = ', predict_flow5.shape)
-                    if _DEBUG: print('#### DEBUG predict_flow4 = ', predict_flow4.shape)
-                    if _DEBUG: print('#### DEBUG predict_flow3 = ', predict_flow3.shape)
-                    if _DEBUG: print('#### DEBUG predict_flow2 = ', predict_flow2.shape)
-                    if _DEBUG: print('#### DEBUG flow = ', flow.shape)
+                    if _DEBUG: print('#### FS = DEBUG predict_flow6 = ', predict_flow6.shape)
+                    if _DEBUG: print('#### FS = DEBUG predict_flow5 = ', predict_flow5.shape)
+                    if _DEBUG: print('#### FS = DEBUG predict_flow4 = ', predict_flow4.shape)
+                    if _DEBUG: print('#### FS = DEBUG predict_flow3 = ', predict_flow3.shape)
+                    if _DEBUG: print('#### FS = DEBUG predict_flow2 = ', predict_flow2.shape)
+                    if _DEBUG: print('#### FS = DEBUG flow = ', flow.shape)
 
                     return {
                         'predict_flow6': predict_flow6,
