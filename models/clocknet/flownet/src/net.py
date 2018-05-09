@@ -20,6 +20,7 @@ CROP_SIZE = config['hp'].getint('crop_size')
 
 _DEBUG = False
 H_f = W_f = 17
+CKPT_LOC = './checkpoints/FlowNet2/flownet-2.ckpt-0'
 
 slim = tf.contrib.slim
 
@@ -76,9 +77,10 @@ class Net(object):
 
         return resize[h_crop:h_crop + CROP_SIZE, w_crop:w_crop + CROP_SIZE]
 
-    def compute_flow(self, input_a, input_b):
+    def compute_flow(self, input_a, input_b, checkpoint=CKPT_LOC):
         """
         computes optical flow using & down samples bi-linearly to h_f & w_f
+        :param checkpoint: checkpoint location
         :param input_a: rgb input frame (prev)
         :param input_b: rgb input frame (curr)
         :return: h_f x w_f x 2 flow information
@@ -105,6 +107,12 @@ class Net(object):
         flow = predictions['flow']
         pred_flow = tf.image.resize_bilinear(flow, tf.stack([H_f, W_f]), align_corners=True)
 
+        saver = tf.train.Saver()
+
+        with tf.Session() as sess:
+            saver.restore(sess, checkpoint)
+            pred_flow = sess.run(pred_flow)[0, :, :, :]
+
         return pred_flow
 
     def test(self, checkpoint, input_a_path, input_b_path, out_path, save_image=True, save_flo=False):
@@ -115,7 +123,7 @@ class Net(object):
         input_b = self.resize_crop(input_b)
 
         flo = self.compute_flow(input_a, input_b)
-        print('FLOW INFORMATION')
+        print('PRINTING FLOW INFORMATION...')
         print(flo)
 
         # Convert from RGB -> BGR
