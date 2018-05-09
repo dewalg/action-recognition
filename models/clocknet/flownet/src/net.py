@@ -18,8 +18,8 @@ config.read('../../../config/config.ini')
 
 CROP_SIZE = config['hp'].getint('crop_size')
 
-_DEBUG = True
-
+_DEBUG = False
+H_f = W_f = 17
 
 slim = tf.contrib.slim
 
@@ -102,7 +102,8 @@ class Net(object):
         }
         predictions = self.model(inputs, training_schedule)
         if _DEBUG: print("###### PREDICTION KEYS = ", predictions.keys())
-        pred_flow = predictions['predict_flow4']
+        flow = predictions['predict_flow4']
+        pred_flow = tf.image.resize_bilinear(flow, tf.stack([H_f, W_f]), align_corners=True)
 
         saver = tf.train.Saver()
 

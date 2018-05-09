@@ -8,7 +8,7 @@ import tensorflow as tf
 slim = tf.contrib.slim
 
 
-_DEBUG = True
+_DEBUG = False
 
 
 class FlowNet2(Net):
