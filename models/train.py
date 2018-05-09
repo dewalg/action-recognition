@@ -1,11 +1,11 @@
 import sys
 import os
 import time
-from i3d import i3d
+from .clocknet.clocknet import ClockNet
 import tensorflow as tf
-from pipeline import Pipeline
+from .pipeline import Pipeline
 from configparser import ConfigParser, ExtendedInterpolation
-from comet_ml import Experiment
+# from comet_ml import Experiment
 
 config = ConfigParser(interpolation=ExtendedInterpolation())
 config.read('../config/config.ini')
@@ -38,13 +38,13 @@ VAL_ITER = config['iter'].getint('val_iter')
 DISPLAY_ITER = config['iter'].getint('display_iter')
 SHUFFLE_SIZE = config['iter'].getint('shuffle_buffer')
 
-
 # build the model
 def inference(rgb_inputs):
     with tf.variable_scope('RGB'):
-        rgb_model = i3d.InceptionI3d(
-            NUM_CLASSES, spatial_squeeze=True, final_endpoint='Logits')
-        rgb_logits, _ = rgb_model(rgb_inputs, is_training=True, dropout_keep_prob=DROPOUT_KEEP_PROB)
+        model = ClockNet()
+        # rgb_model = i3d.InceptionI3d(
+        #     NUM_CLASSES, spatial_squeeze=True, final_endpoint='Logits')
+        # rgb_logits, _ = rgb_model(rgb_inputs, is_training=True, dropout_keep_prob=DROPOUT_KEEP_PROB)
     return rgb_logits
 
 
@@ -109,8 +109,8 @@ if __name__ == '__main__':
                     }
 
     """  this is user-sensitive API key. Change it to see logs in your comet-ml """
-    experiment = Experiment(api_key="5t7sqKGYmr76wqaEHqwN0Sqcg", project_name="lsar")
-    experiment.log_multiple_params(hyper_params)
+    # experiment = Experiment(api_key="5t7sqKGYmr76wqaEHqwN0Sqcg", project_name="lsar")
+    # experiment.log_multiple_params(hyper_params)
     """ =================================================================== """
     train_pipeline = Pipeline(TRAIN_DATA, CLS_DICT_FP)
     val_pipeline = Pipeline(VAL_DATA, CLS_DICT_FP)
@@ -169,7 +169,7 @@ if __name__ == '__main__':
 
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
-        experiment.set_model_graph(sess.graph)
+        # experiment.set_model_graph(sess.graph)
 
         # rgb_def_state = get_pretrained_save_state()
         ckpt = tf.train.get_checkpoint_state(ckpt_path)
@@ -199,8 +199,8 @@ if __name__ == '__main__':
                     _, loss_val = sess.run([train_op, avg_loss], {is_training: True})
 
                     # logging into comet-ml
-                    experiment.log_metric("train_loss", loss_val, step=it)
-                    experiment.set_step(it)
+                    # experiment.log_metric("train_loss", loss_val, step=it)
+                    # experiment.set_step(it)
 
                     if it % DISPLAY_ITER == 0:
                         tf.logging.info('step %d, loss = %f', it, loss_val)

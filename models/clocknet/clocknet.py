@@ -8,8 +8,7 @@ Video Representations" by Vu et al.
 import numpy as np
 import tensorflow as tf
 import sonnet as snt
-import keras
-from resnet import inception_resnet_v2
+from .resnet import inception_resnet_v2
 
 # debug flag for debugging outputs
 _DEBUG = False
@@ -17,12 +16,11 @@ H_f = W_f = 17
 D_f = 1088
 
 class Resnet:
-    # TODO: plug in resnet
     def __init__(self):
-        self.mem_h = 14
-        self.mem_w = 14
-        self.df = 256
-        self.model = inception_resnet_v2()
+        self.mem_h = H_f
+        self.mem_w = W_f
+        self.df = D_f
+        self.model = inception_resnet_v2.InceptionResNetV2()
 
     def call(self, inputs):
         # inputs is a 299x299x3 tensor
@@ -37,12 +35,12 @@ class Resnet:
 class Flownet:
     # TODO: plug in Flownet
     def __init__(self):
-        self.mem_h = 14
-        self.mem_w = 14
-        self.df = 256
+        self.mem_h = H_f
+        self.mem_w = W_f
+        self.df = D_f
 
-    def call(self, inputs):
-        # should return a 14x14x256 tensor
+    def call(self, prev, after):
+        # should return a W_f by H_f by D_f tensor
         return tf.random_normal([self.mem_h, self.mem_w, self.df],
                                 mean=0, stddev=1)
 
@@ -64,7 +62,7 @@ class ClockNet(snt.AbstractModule):
 
         self.resnet = Resnet()
         self.flownet = Flownet()
-        self.prev_frame = tf.random_normal([self.mem_h, self.mem_w, self.df],
+        self.prev_frame = tf.random_normal([self.mem_h, self.mem_w, 3],
                                        mean=0, stddev=1)
 
     def compute_mem(self, curr_frame):
@@ -100,8 +98,9 @@ class ClockNet(snt.AbstractModule):
         This function is the bilinear kernel. Calculates
         max(0, 1 - |a-b|) as described in https://arxiv.org/pdf/1611.07715.pdf
         """
-
-        return tf.maximum(0, 1 - tf.abs(a - b))
+        a = tf.cast(a, tf.float32)
+        b = tf.cast(b, tf.float32)
+        return tf.maximum(0., 1 - tf.abs(a - b))
 
     def bl_sample(self, features, displ):
         """
@@ -137,7 +136,7 @@ class ClockNet(snt.AbstractModule):
 
         return memory
 
-    def build(self, inputs, is_training=False):
+    def _build(self, inputs):
         """
         Connects the model to inputs.
 
@@ -154,7 +153,14 @@ class ClockNet(snt.AbstractModule):
             2. Dictionary containing all endpoints up to `self._final_endpoint`,
                indexed by endpoint name.
         """
-        for frame in inputs.get_shape()[1]:
-            self.iterate(frame)
+        self.memory = tf.random_normal([self.mem_h, self.mem_w, self.df],
+                                       mean=0, stddev=1)
+
+        # print(inputs.shape)
+        # for frame in inputs.get_shape()[1]:
+        for frame in range(inputs.shape[1]):
+            self.iterate(inputs[0][frame])
+
+        return self.memory
 
 
