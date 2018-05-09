@@ -5,6 +5,8 @@ import math
 import tensorflow as tf
 slim = tf.contrib.slim
 
+_DEBUG = True
+
 
 class FlowNetS(Net):
 
@@ -13,6 +15,7 @@ class FlowNetS(Net):
 
     def model(self, inputs, training_schedule, trainable=True):
         _, height, width, _ = inputs['input_a'].shape.as_list()
+        if _DEBUG: print('#### DEBUG Input height = ', height, ' width = ', width)
         stacked = False
         with tf.variable_scope('FlowNetS'):
             if 'warped' in inputs and 'flow' in inputs and 'brightness_error' in inputs:
@@ -109,6 +112,12 @@ class FlowNetS(Net):
                     flow = tf.image.resize_bilinear(flow,
                                                     tf.stack([height, width]),
                                                     align_corners=True)
+                    if _DEBUG: print('#### DEBUG predict_flow6 = ', predict_flow6.shape)
+                    if _DEBUG: print('#### DEBUG predict_flow5 = ', predict_flow5.shape)
+                    if _DEBUG: print('#### DEBUG predict_flow4 = ', predict_flow4.shape)
+                    if _DEBUG: print('#### DEBUG predict_flow3 = ', predict_flow3.shape)
+                    if _DEBUG: print('#### DEBUG predict_flow2 = ', predict_flow2.shape)
+                    if _DEBUG: print('#### DEBUG flow = ', flow.shape)
 
                     return {
                         'predict_flow6': predict_flow6,
