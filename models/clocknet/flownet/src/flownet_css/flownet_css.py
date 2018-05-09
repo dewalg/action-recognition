@@ -7,7 +7,7 @@ import tensorflow as tf
 
 class FlowNetCSS(Net):
 
-    def __init__(self, mode=Mode.TRAIN, debug=False):
+    def __init__(self, mode=Mode.TEST, debug=False):
         self.net_cs = FlowNetCS(mode, debug)
         self.net_s = FlowNetS(mode, debug)
         super(FlowNetCSS, self).__init__(mode=mode, debug=debug)

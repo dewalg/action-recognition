@@ -8,15 +8,19 @@ import tensorflow as tf
 slim = tf.contrib.slim
 
 
+_DEBUG = False
+
+
 class FlowNet2(Net):
 
-    def __init__(self, mode=Mode.TRAIN, debug=False):
+    def __init__(self, mode=Mode.TEST, debug=False):
         self.net_css = FlowNetCSS(mode, debug)
         self.net_sd = FlowNetSD(mode, debug)
         super(FlowNet2, self).__init__(mode=mode, debug=debug)
 
     def model(self, inputs, training_schedule, trainable=True):
         _, height, width, _ = inputs['input_a'].shape.as_list()
+        if _DEBUG: print('#### DEBUG Input height = ', height,' width = ', width)
         with tf.variable_scope('FlowNet2'):
             # Forward pass through FlowNetCSS and FlowNetSD with weights frozen
             net_css_predictions = self.net_css.model(inputs, training_schedule, trainable=False)
@@ -58,13 +62,18 @@ class FlowNet2(Net):
 
                 weights_regularizer = slim.l2_regularizer(training_schedule['weight_decay'])
                 with slim.arg_scope([slim.conv2d], weights_regularizer=weights_regularizer):
+                    if _DEBUG: print('#### DEBUG input to fusion = ', input_to_fusion.shape)
                     fuse_conv0 = slim.conv2d(pad(input_to_fusion), 64, 3, scope='fuse_conv0')
+                    if _DEBUG: print('#### DEBUG fuse_conv0 = ', fuse_conv0.shape)
                     fuse_conv1 = slim.conv2d(pad(fuse_conv0), 64, 3, stride=2, scope='fuse_conv1')
+                    if _DEBUG: print('#### DEBUG fuse_conv1 = ', fuse_conv1.shape)
                     fuse_conv1_1 = slim.conv2d(pad(fuse_conv1), 128, 3, scope='fuse_conv1_1')
+                    if _DEBUG: print('#### DEBUG fuse_conv1_1 = ', fuse_conv1_1.shape)
                     fuse_conv2 = slim.conv2d(pad(fuse_conv1_1), 128, 3,
                                              stride=2, scope='fuse_conv2')
+                    if _DEBUG: print('#### DEBUG fuse_conv2 = ', fuse_conv2.shape)
                     fuse_conv2_1 = slim.conv2d(pad(fuse_conv2), 128, 3, scope='fuse_conv2_1')
-
+                    if _DEBUG: print('#### DEBUG fuse_conv2_1 = ', fuse_conv2_1.shape)
                     predict_flow2 = slim.conv2d(pad(fuse_conv2_1), 2, 3,
                                                 scope='predict_flow2',
                                                 activation_fn=None)
@@ -79,7 +88,7 @@ class FlowNet2(Net):
                                          fuse_upsample_flow2to1], axis=3)
                     fuse_interconv1 = slim.conv2d(pad(concat1), 32, 3,
                                                   activation_fn=None, scope='fuse_interconv1')
-
+                    if _DEBUG: print('#### DEBUG fuse_conv2_1 = ', fuse_interconv1.shape)
                     predict_flow1 = slim.conv2d(pad(fuse_interconv1), 2, 3,
                                                 scope='predict_flow1',
                                                 activation_fn=None)
@@ -94,11 +103,15 @@ class FlowNet2(Net):
                     fuse_interconv0 = slim.conv2d(pad(concat0), 16, 3,
                                                   activation_fn=None, scope='fuse_interconv0')
 
+                    if _DEBUG: print('#### DEBUG fuse_conv2_1 = ', fuse_interconv1.shape)
+
                     predict_flow0 = slim.conv2d(pad(fuse_interconv0), 2,
                                                 3, activation_fn=None, scope='predict_flow0')
 
                     flow = tf.image.resize_bilinear(
                         predict_flow0, tf.stack([height, width]), align_corners=True)
+                    if _DEBUG: print('#### DEBUG predict_flow0 = ', predict_flow0.shape)
+                    if _DEBUG: print('#### DEBUG flow = ', flow.shape)
                     return {
                         'predict_flow0': predict_flow0,
                         'flow': flow,

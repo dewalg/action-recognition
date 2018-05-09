@@ -8,12 +8,16 @@ Video Representations" by Vu et al.
 import numpy as np
 import tensorflow as tf
 import sonnet as snt
+
 from .resnet import inception_resnet_v2
+from .flownet.src import flownet2
 
 # debug flag for debugging outputs
 _DEBUG = False
+
 H_f = W_f = 17
 D_f = 1088
+
 
 class Resnet:
     def __init__(self):
@@ -32,6 +36,7 @@ class Resnet:
         # should return a dx17x17x1088 tensor
         return self.model.predict(inputs)
 
+
 class Flownet:
     # TODO: plug in Flownet
     def __init__(self):
@@ -39,10 +44,15 @@ class Flownet:
         self.mem_w = W_f
         self.df = D_f
 
-    def call(self, prev, after):
-        # should return a W_f by H_f by D_f tensor
-        return tf.random_normal([self.mem_h, self.mem_w, self.df],
-                                mean=0, stddev=1)
+    def call(self, prev_frame, curr_frame):
+        """
+        :param prev_frame: rgb input frame - should be 399 x 399 x 3
+        :param curr_frame: rgb input frame - should be 399 x 399 x 3
+        :return: 17 x 17 x 2 flow information.
+        """
+        # should return a h_f x w_f x 2 tensor
+        net = flownet2.FlowNet2()
+        return net.compute_flow(prev_frame, curr_frame)
 
 
 class ClockNet(snt.AbstractModule):

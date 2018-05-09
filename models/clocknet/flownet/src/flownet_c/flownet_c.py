@@ -6,10 +6,12 @@ import math
 import tensorflow as tf
 slim = tf.contrib.slim
 
+_DEBUG = False
+
 
 class FlowNetC(Net):
 
-    def __init__(self, mode=Mode.TRAIN, debug=False):
+    def __init__(self, mode=Mode.TEST, debug=False):
         super(FlowNetC, self).__init__(mode=mode, debug=debug)
 
     def model(self, inputs, training_schedule, trainable=True):
@@ -19,8 +21,8 @@ class FlowNetC(Net):
         adapted_h = int(math.ceil(height/divisor) * divisor)
         inputs['input_a'] = tf.image.resize_images(inputs['input_a'], [adapted_h, adapted_w])
         inputs['input_b'] = tf.image.resize_images(inputs['input_b'], [adapted_h, adapted_w])
-        print("PRINTING ****** ", height, " ****** ",adapted_h)
-        print("PRINTING ****** ", width, " ****** ",adapted_w)
+        if _DEBUG: print('#### DEBUG Input height = ', height, ' width = ', width)
+        if _DEBUG: print('#### DEBUG Adapted height = ', adapted_h, ' width = ', adapted_w)
         height = adapted_h
         width = adapted_w
         with tf.variable_scope('FlowNetC'):
@@ -123,6 +125,13 @@ class FlowNetC(Net):
                     flow = tf.image.resize_bilinear(flow,
                                                     tf.stack([height, width]),
                                                     align_corners=True)
+
+                    if _DEBUG: print('#### DEBUG predict_flow6 = ', predict_flow6.shape)
+                    if _DEBUG: print('#### DEBUG predict_flow5 = ', predict_flow5.shape)
+                    if _DEBUG: print('#### DEBUG predict_flow4 = ', predict_flow4.shape)
+                    if _DEBUG: print('#### DEBUG predict_flow3 = ', predict_flow3.shape)
+                    if _DEBUG: print('#### DEBUG predict_flow2 = ', predict_flow2.shape)
+                    if _DEBUG: print('#### DEBUG flow = ', flow.shape)
 
                     return {
                         'predict_flow6': predict_flow6,

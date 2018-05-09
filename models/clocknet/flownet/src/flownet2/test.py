@@ -11,12 +11,16 @@ def main():
     net = FlowNet2(mode=Mode.TEST)
 
     # Train on the data
-    net.test(
-        checkpoint='./checkpoints/FlowNet2/flownet-2.ckpt-0',
-        input_a_path=FLAGS.input_a,
-        input_b_path=FLAGS.input_b,
-        out_path=FLAGS.out,
-    )
+    # net.test(
+    #     checkpoint='./checkpoints/FlowNet2/flownet-2.ckpt-0',
+    #     input_a_path=FLAGS.input_a,
+    #     input_b_path=FLAGS.input_b,
+    #     out_path=FLAGS.out,
+    # )
+    flo = net.compute_flow(input_a=FLAGS.input_a, input_b=FLAGS.input_b)
+    print("PRINTING FLOW INFO")
+    print(flo)
+    print(flo.shape)
 
 
 if __name__ == '__main__':

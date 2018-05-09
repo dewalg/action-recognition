@@ -7,6 +7,21 @@ import numpy as np
 from scipy.misc import imread, imsave
 import uuid
 from .training_schedules import LONG_SCHEDULE
+
+import random
+from scipy import misc
+from datetime import datetime
+from configparser import ConfigParser, ExtendedInterpolation
+
+config = ConfigParser(interpolation=ExtendedInterpolation())
+config.read('../../../config/config.ini')
+
+CROP_SIZE = config['hp'].getint('crop_size')
+
+_DEBUG = False
+H_f = W_f = 17
+CKPT_LOC = './checkpoints/FlowNet2/flownet-2.ckpt-0'
+
 slim = tf.contrib.slim
 
 
@@ -38,9 +53,43 @@ class Net(object):
         """
         return
 
-    def test(self, checkpoint, input_a_path, input_b_path, out_path, save_image=True, save_flo=False):
-        input_a = imread(input_a_path)
-        input_b = imread(input_b_path)
+    def resize_crop(self, img: np.ndarray) -> np.ndarray:
+        '''
+        resize the image frame to a random crop_size by crop_size
+        '''
+
+        # originally was 256
+        min_dim = 324
+        aspect_ratio = float(img.shape[1]) / float(img.shape[0])
+        if aspect_ratio <= 1.0:
+            new_w = min_dim
+            new_h = int(min_dim / aspect_ratio)
+        else:
+            new_h = min_dim
+            new_w = int(min_dim * aspect_ratio)
+
+        random.seed(datetime.now())
+        resize = misc.imresize(img, (new_h, new_w), 'bilinear')
+        wrange = resize.shape[1] - CROP_SIZE
+        hrange = resize.shape[0] - CROP_SIZE
+        w_crop = int(wrange/2)
+        h_crop = int(hrange/2)
+
+        return resize[h_crop:h_crop + CROP_SIZE, w_crop:w_crop + CROP_SIZE]
+
+    def compute_flow(self, input_a, input_b, checkpoint=CKPT_LOC):
+        """
+        computes optical flow using & down samples bi-linearly to h_f & w_f
+        :param checkpoint: checkpoint location
+        :param input_a: rgb input frame (prev)
+        :param input_b: rgb input frame (curr)
+        :return: h_f x w_f x 2 flow information
+        """
+        input_a = imread(input_a)
+        input_b = imread(input_b)
+
+        input_a = self.resize_crop(input_a)
+        input_b = self.resize_crop(input_b)
 
         # Convert from RGB -> BGR
         input_a = input_a[..., [2, 1, 0]]
@@ -60,6 +109,44 @@ class Net(object):
             'input_b': tf.expand_dims(tf.constant(input_b, dtype=tf.float32), 0),
         }
         predictions = self.model(inputs, training_schedule)
+        if _DEBUG: print("###### PREDICTION KEYS = ", predictions.keys())
+        flow = predictions['flow']
+        pred_flow = tf.image.resize_bilinear(flow, tf.stack([H_f, W_f]), align_corners=True)
+
+        saver = tf.train.Saver()
+
+        with tf.Session() as sess:
+            saver.restore(sess, checkpoint)
+            pred_flow = sess.run(pred_flow)[0, :, :, :]
+
+        return pred_flow
+
+    def test(self, checkpoint, input_a_path, input_b_path, out_path, save_image=True, save_flo=False):
+        input_a = imread(input_a_path)
+        input_b = imread(input_b_path)
+
+        input_a = self.resize_crop(input_a)
+        input_b = self.resize_crop(input_b)
+
+        # Convert from RGB -> BGR
+        input_a = input_a[..., [2, 1, 0]]
+        input_b = input_b[..., [2, 1, 0]]
+
+        # Scale from [0, 255] -> [0.0, 1.0] if needed
+        if input_a.max() > 1.0:
+            input_a = input_a / 255.0
+        if input_b.max() > 1.0:
+            input_b = input_b / 255.0
+
+        # TODO: This is a hack, we should get rid of this
+        training_schedule = LONG_SCHEDULE
+
+        inputs = {
+            'input_a': tf.expand_dims(tf.constant(input_a, dtype=tf.float32), 0),
+            'input_b': tf.expand_dims(tf.constant(input_b, dtype=tf.float32), 0),
+        }
+        predictions = self.model(inputs, training_schedule)
+        if _DEBUG: print("###### PREDICTION KEYS = ", predictions.keys())
         pred_flow = predictions['flow']
 
         saver = tf.train.Saver()
