@@ -4,16 +4,15 @@ Video Representations" by Vu et al.
 '''
 
 # using python 3
-
+import time
 import numpy as np
 import tensorflow as tf
-import sonnet as snt
 
 from .resnet import inception_resnet_v2
 from .flownet.src import flownet2
 
 # debug flag for debugging outputs
-_DEBUG = True
+_DEBUG = False
 
 H_f = W_f = 17
 D_f = 1088
@@ -61,9 +60,8 @@ class Flownet:
         return tf.random_normal([self.mem_h, self.mem_w, 2],
                                        mean=0, stddev=1)
 
-class ClockNet(snt.AbstractModule):
+class ClockNet():
     def __init__(self, num_classes, name='clocknet'):
-        super(ClockNet, self).__init__(name=name)
         self.num_classes = num_classes
 
         # on resnet architecture, conv4_x spits out
@@ -112,20 +110,29 @@ class ClockNet(snt.AbstractModule):
         :return: void - updates the memory 
         """
 
+        start_time = time.time()
+        print("starting iteration")
+
         if _DEBUG: print(memory)
         if _DEBUG: print(frame)
 
         # computation per frame
         features = self.resnet.call(frame)
+        print("%s : finished resnet features" % (time.time() - start_time))
 
+        t = time.time()
         # compute the new memory with flow from prev frame
         # (corresponds to 'w' function in the paper)
         memory = self.compute_mem(memory, frame)
 
+        print("%s : finished memory computation" % (time.time() - t))
+
+        t = time.time()
         # compute the new memory
         # corresponds to the 'A' function
         memory = self.aggregate(memory, features)
 
+        print("%s : finished memory aggregation" % (time.time() - t))
         return memory
 
     # @staticmethod
@@ -226,7 +233,8 @@ class ClockNet(snt.AbstractModule):
 
         if _DEBUG: print(inputs)
         initial_state = tf.zeros([self.mem_w, self.mem_h, self.df])
-        memory = tf.scan(self.iterate, inputs[0], initializer=initial_state)
+        print("starting compute")
+        memory = tf.scan(self.iterate, inputs[0], initializer=initial_state, parallel_iterations=1)
         return memory
 
 

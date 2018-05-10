@@ -85,11 +85,11 @@ class Net(object):
         :param input_b: rgb input frame (curr)
         :return: h_f x w_f x 2 flow information
         """
-        input_a = imread(input_a)
-        input_b = imread(input_b)
+        # input_a = imread(input_a)
+        # input_b = imread(input_b)
 
-        input_a = self.resize_crop(input_a)
-        input_b = self.resize_crop(input_b)
+        # input_a = self.resize_crop(input_a)
+        # input_b = self.resize_crop(input_b)
 
         # Convert from RGB -> BGR
         input_a = input_a[..., [2, 1, 0]]

@@ -190,7 +190,7 @@ if __name__ == '__main__':
     #             break
 
     dataset = pipeline.get_dataset().batch(BATCH_SIZE)
-    iterator = tf.contrib.data.Iterator.from_structure(dataset.output_types, dataset.output_shapes)
+    iterator = tf.data.Iterator.from_structure(dataset.output_types, dataset.output_shapes)
     init_op = iterator.make_initializer(dataset)
     # features, label = batched_ds.make_one_shot_iterator().get_next()
     features, label = iterator.get_next()
