@@ -328,7 +328,7 @@ def inception_resnet_v2(inputs, num_classes=1001, is_training=True,
             print(net.shape)
         return name == final_endpoint
 
-    if final_endpoint not in v2_end_points:
+    if final_endpoint not in v2_end_points and final_endpoint not in v2_base_endpoints:
         raise ValueError('final_endpoint (%s) not recognized', final_endpoint)
 
     with tf.variable_scope(scope, 'InceptionResnetV2', [inputs],
