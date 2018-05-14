@@ -21,10 +21,11 @@ D_f = 1088
 
 
 class Resnet:
-    def __init__(self):
+    def __init__(self, num_classes = 10):
         self.mem_h = H_f
         self.mem_w = W_f
         self.df = D_f
+        self.num_classes = num_classes
         # self.model = inception_resnet_v2_keras.InceptionResNetV2()
 
     def call(self, inputs):
@@ -34,11 +35,11 @@ class Resnet:
         if _DEBUG: print(inputs)
         # return self.model.predict(np.array([inputs]))[0]
         inputs = tf.reshape(inputs, [1, 299, 299, 3])
-        out, _ = inception_resnet_v2_tf.inception_resnet_v2(inputs, num_classes=400, dropout_keep_prob=0.5)
+        out, _ = inception_resnet_v2_tf.inception_resnet_v2(inputs, num_classes=self.num_classes, dropout_keep_prob=0.5)
         out = tf.reshape(out, [17, 17, 1088])
         return out
 
-    def callBatch(self, inputs):
+    def call_batch(self, inputs):
         # inputs is a dx299x299x3 tensor
         # should return a dx17x17x1088 tensor
         return self.model.predict(inputs)
@@ -77,7 +78,7 @@ class ClockNet(snt.AbstractModule):
         # self.memory = tf.random_normal([self.mem_h, self.mem_w, self.df],
         #                                mean=0, stddev=1)
 
-        self.resnet = Resnet()
+        self.resnet = Resnet(self.num_classes)
         self.flownet = Flownet()
         self.prev_frame = tf.random_normal([self.mem_h, self.mem_w, 3],
                                        mean=0, stddev=1)
