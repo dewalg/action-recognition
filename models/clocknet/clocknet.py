@@ -9,7 +9,8 @@ import numpy as np
 import tensorflow as tf
 import sonnet as snt
 
-from .resnet import inception_resnet_v2
+from .resnet import inception_resnet_v2_keras
+from .resnet import inception_resnet_v2_tf
 from .flownet.src import flownet2
 
 # debug flag for debugging outputs
@@ -24,7 +25,7 @@ class Resnet:
         self.mem_h = H_f
         self.mem_w = W_f
         self.df = D_f
-        self.model = inception_resnet_v2.InceptionResNetV2()
+        # self.model = inception_resnet_v2_keras.InceptionResNetV2()
 
     def call(self, inputs):
         # inputs is a 299x299x3 tensor
@@ -33,7 +34,7 @@ class Resnet:
         if _DEBUG: print(inputs)
         # return self.model.predict(np.array([inputs]))[0]
         inputs = tf.reshape(inputs, [1, 299, 299, 3])
-        out = self.model(inputs)
+        out, _ = inception_resnet_v2_tf.inception_resnet_v2(inputs, num_classes=400, dropout_keep_prob=0.5)
         out = tf.reshape(out, [17, 17, 1088])
         return out
 
