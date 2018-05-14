@@ -35,7 +35,7 @@ class Resnet:
         if _DEBUG: print(inputs)
         # return self.model.predict(np.array([inputs]))[0]
         inputs = tf.reshape(inputs, [1, 299, 299, 3])
-        out, _ = inception_resnet_v2_tf.inception_resnet_v2(inputs, num_classes=self.num_classes, dropout_keep_prob=0.5)
+        out, _ = inception_resnet_v2_tf.inception_resnet_v2(inputs, num_classes=self.num_classes, dropout_keep_prob=0.5, final_endpoint='Mixed_6a')
         out = tf.reshape(out, [17, 17, 1088])
         return out
 
