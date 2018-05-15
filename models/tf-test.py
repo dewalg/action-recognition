@@ -3,6 +3,7 @@ from configparser import ConfigParser, ExtendedInterpolation
 import numpy as np
 from clocknet.clocknet import ClockNet
 from clocknet.clock_flow import ClockFlow
+from clocknet.clock_rgb import ClockRgb
 import clocknet.flownet.src.flowlib as lib
 from clocknet.resnet import inception_resnet_v2_tf
 import tensorflow as tf
@@ -29,8 +30,8 @@ init_op = iterator.make_initializer(queue)
 
 rgb, labels = iterator.get_next()
 
-with tf.variable_scope('model'):
-    model = ClockNet(num_classes=10)
+with tf.variable_scope('clocknet'):
+    model = ClockRgb(num_classes=10)
     mem = model._build(rgb)
 
 with tf.Session() as sess:
