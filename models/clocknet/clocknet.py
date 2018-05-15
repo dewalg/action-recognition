@@ -60,10 +60,10 @@ class Flownet:
         :return: 17 x 17 x 2 flow information.
         """
         # should return a h_f x w_f x 2 tensor
-        # net = flownet2.FlowNet2()
-        # return net.compute_flow(prev_frame, curr_frame)
-        return tf.random_normal([self.mem_h, self.mem_w, 2],
-                                       mean=0, stddev=1)
+        net = flownet2.FlowNet2()
+        return net.compute_flow(prev_frame, curr_frame)
+        # return tf.random_normal([self.mem_h, self.mem_w, 2],
+        #                                mean=0, stddev=1)
 
 class ClockNet(snt.AbstractModule):
     def __init__(self, num_classes, name='clocknet'):
