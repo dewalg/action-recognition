@@ -31,7 +31,7 @@ with tf.variable_scope('model'):
     model = ClockNet(num_classes=10)
     # model = inception_resnet_v2.InceptionResNetV2()
 
-    print("RGB SHAPE IS ****** ", rgb.shape)
+    print("RGB SHAPE IS ****** ", rgb[0].shape)
     mem = model._build(rgb)
 
 with tf.Session() as sess:
