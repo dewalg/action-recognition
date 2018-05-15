@@ -6,6 +6,7 @@ Video Representations" by Vu et al.
 # using python 3
 
 import numpy as np
+import time
 import tensorflow as tf
 import sonnet as snt
 
@@ -115,21 +116,30 @@ class ClockNet(snt.AbstractModule):
         :return: void - updates the memory 
         """
 
-        if _DEBUG: print(memory)
-        if _DEBUG: print(frame)
+        start_time = time.time()
+        print("starting iteration")
+
+        if _DEBUG: print("MEMORY SHAPE...*****", memory.shape)
+        if _DEBUG: print("FRAME SHAPE...*****", frame.shape)
 
         # computation per frame
         features = self.resnet.call(frame)
+        print("%s : finished resnet features" % (time.time() - start_time))
 
+        t = time.time()
         # compute the new memory with flow from prev frame
         # (corresponds to 'w' function in the paper)
-        # memory = self.compute_mem(memory, frame)
-        #
-        # # compute the new memory
-        # # corresponds to the 'A' function
+        memory = self.compute_mem(memory, frame)
+
+        print("%s : finished memory computation" % (time.time() - t))
+
+        t = time.time()
+        # compute the new memory
+        # corresponds to the 'A' function
         # memory = self.aggregate(memory, features)
 
-        return features
+        print("%s : finished memory aggregation" % (time.time() - t))
+        return memory
 
     # @staticmethod
     # def bl_kernel(a, b):
