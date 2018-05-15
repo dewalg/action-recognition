@@ -126,10 +126,10 @@ class ClockNet(snt.AbstractModule):
         features = self.resnet.call(frame)
         print("%s : finished resnet features" % (time.time() - start_time))
 
-        # t = time.time()
-        # # compute the new memory with flow from prev frame
-        # # (corresponds to 'w' function in the paper)
-        # memory = self.compute_mem(memory, frame)
+        t = time.time()
+        # compute the new memory with flow from prev frame
+        # (corresponds to 'w' function in the paper)
+        memory = self.compute_mem(memory, frame)
         #
         # print("%s : finished memory computation" % (time.time() - t))
         #
