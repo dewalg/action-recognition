@@ -200,7 +200,8 @@ class ClockNet(snt.AbstractModule):
 
         if _DEBUG: print("INPUTS SHAPE...******", inputs.shape)
         initial_state = tf.zeros([self.mem_w, self.mem_h, self.df])
-        junk = tf.scan(self.iterate, inputs[0], initializer=initial_state)
-        return junk, self.clocknet_mem
+        _ = tf.scan(self.iterate, inputs[0], initializer=initial_state)
+        mem = self.clocknet_mem
+        return mem
 
 
