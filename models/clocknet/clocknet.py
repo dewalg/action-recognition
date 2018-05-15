@@ -137,7 +137,6 @@ class ClockNet(snt.AbstractModule):
         # # compute the new memory
         # # corresponds to the 'A' function
         # memory = self.aggregate(memory, features)
-        #
         # print("%s : finished memory aggregation" % (time.time() - t))
         return features
 
@@ -198,6 +197,6 @@ class ClockNet(snt.AbstractModule):
         if _DEBUG: print("INPUTS SHAPE...******", inputs.shape)
         initial_state = tf.zeros([self.mem_w, self.mem_h, self.df])
         memory = tf.scan(self.iterate, inputs[0], initializer=initial_state)
-        return memory[inputs[0].shape-1]
+        return memory
 
 
