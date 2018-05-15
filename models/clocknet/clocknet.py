@@ -12,7 +12,7 @@ import sonnet as snt
 
 from .resnet import inception_resnet_v2_keras
 from .resnet import inception_resnet_v2_tf
-from .flownet.src import flownet2
+from .flownet.src.flownet2 import flownet2
 
 # debug flag for debugging outputs
 _DEBUG = True
