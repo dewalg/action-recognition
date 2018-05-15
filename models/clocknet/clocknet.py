@@ -130,8 +130,8 @@ class ClockNet(snt.AbstractModule):
         # compute the new memory with flow from prev frame
         # (corresponds to 'w' function in the paper)
         memory = self.compute_mem(memory, frame)
-        #
-        # print("%s : finished memory computation" % (time.time() - t))
+        print("AFTER COMPUTE MEM =", memory.shape)
+        print("%s : finished memory computation" % (time.time() - t))
         #
         # t = time.time()
         # # compute the new memory
