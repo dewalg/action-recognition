@@ -23,15 +23,10 @@ queue = pipe.get_dataset().batch(1)
 iterator = tf.data.Iterator.from_structure(queue.output_types, queue.output_shapes)
 init_op = iterator.make_initializer(queue)
 
-# example = pipe._parse(pipe.videos[0])[0]
-# print(np.shape(example))
 rgb, labels = iterator.get_next()
 
 with tf.variable_scope('model'):
     model = ClockNet(num_classes=10)
-    # model = inception_resnet_v2.InceptionResNetV2()
-
-    print("RGB SHAPE IS ****** ", rgb[0].shape)
     mem = model._build(rgb)
 
 with tf.Session() as sess:

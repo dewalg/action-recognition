@@ -75,6 +75,7 @@ class ClockNet(snt.AbstractModule):
         self.mem_h = H_f
         self.mem_w = W_f
         self.df = D_f
+        self.clocknet_mem = tf.zeros([self.mem_w, self.mem_h, self.df])
 
         # memory is initialized randomly
         # self.memory = tf.random_normal([self.mem_h, self.mem_w, self.df],
@@ -129,59 +130,19 @@ class ClockNet(snt.AbstractModule):
         t = time.time()
         # compute the new memory with flow from prev frame
         # (corresponds to 'w' function in the paper)
-        # memory = self.compute_mem(memory, frame)
+        memory = self.compute_mem(memory, frame)
 
         print("%s : finished memory computation" % (time.time() - t))
 
         t = time.time()
         # compute the new memory
         # corresponds to the 'A' function
-        # memory = self.aggregate(memory, features)
+        memory = self.aggregate(memory, features)
 
         print("%s : finished memory aggregation" % (time.time() - t))
-        return memory
 
-    # @staticmethod
-    # def bl_kernel(a, b):
-    #     """
-    #     This function is the bilinear kernel. Calculates
-    #     max(0, 1 - |a-b|) as described in https://arxiv.org/pdf/1611.07715.pdf
-    #     """
-    #     return tf.maximum(0., 1 - tf.abs(a - b))
-
-    # def bl_sample(self, features, displ):
-    #     """
-    #
-    #     :param features: feature maps (aka the memory) that will be updated
-    #                     Expected to be a H_f x W_f x D_f tensor
-    #     :param displ: the displacement field
-    #                     Expected to be a H_f x W_f x 2 tensor
-    #     :return: returns the new feature map determine by a
-    #                     bilinear interpolation as descrbied in:
-    #                     https://arxiv.org/pdf/1611.07715.pdf
-    #     """
-    #
-    #     memory = tf.zeros([W_f, H_f, D_f])
-    #     for c in range(D_f):
-    #         # do BL-interpolation per channel
-    #         for px in range(W_f):
-    #             for py in range(H_f):
-    #                 d_px = displ[px, py, 0]
-    #                 d_py = displ[px, py, 1]
-    #                 results = 0
-    #                 for qx in range(W_f):
-    #                     for qy in range(H_f):
-    #                         prev = features[qx, qy, c]
-    #                         if prev == 0:
-    #                             continue
-    #
-    #                         gx = self.bl_kernel(qx, px+d_px)
-    #                         gy = self.bl_kernel(qy, py+d_py)
-    #                         results += prev * gx * gy
-    #
-    #                 memory[px, py, c] = results
-    #
-    #     return memory
+        self.clocknet_mem = memory
+        return features
 
     def bl_sample(self, features, displ):
         a = tf.fill([self.mem_w, self.mem_h, self.df], True)
@@ -239,7 +200,7 @@ class ClockNet(snt.AbstractModule):
 
         if _DEBUG: print("INPUTS SHAPE...******", inputs.shape)
         initial_state = tf.zeros([self.mem_w, self.mem_h, self.df])
-        memory = tf.scan(self.iterate, inputs[0], initializer=initial_state)
-        return memory
+        _ = tf.scan(self.iterate, inputs[0], initializer=initial_state)
+        return self.clocknet_mem
 
 
