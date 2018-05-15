@@ -48,7 +48,7 @@ class ClockFlow(snt.AbstractModule):
         self.prev_frame = tf.random_normal([self.mem_h, self.mem_w, 3], mean=0, stddev=1)
 
     def iterate(self, memory, frame):
-        features = Flownet.call(self.prev_frame, frame)
+        features = self.flownet.call(self.prev_frame, frame)
         return features
 
     def _build(self, inputs):
