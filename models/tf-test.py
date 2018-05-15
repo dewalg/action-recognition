@@ -32,5 +32,5 @@ with tf.variable_scope('model'):
 with tf.Session() as sess:
     sess.run(init_op)
     sess.run(tf.global_variables_initializer())
-    mem = sess.run([mem])
+    _, mem = sess.run([mem])
     print(np.array(mem).shape)

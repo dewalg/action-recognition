@@ -127,21 +127,21 @@ class ClockNet(snt.AbstractModule):
         features = self.resnet.call(frame)
         print("%s : finished resnet features" % (time.time() - start_time))
 
-        t = time.time()
-        # compute the new memory with flow from prev frame
-        # (corresponds to 'w' function in the paper)
-        memory = self.compute_mem(memory, frame)
+        # t = time.time()
+        # # compute the new memory with flow from prev frame
+        # # (corresponds to 'w' function in the paper)
+        # memory = self.compute_mem(memory, frame)
+        #
+        # print("%s : finished memory computation" % (time.time() - t))
+        #
+        # t = time.time()
+        # # compute the new memory
+        # # corresponds to the 'A' function
+        # memory = self.aggregate(memory, features)
+        #
+        # print("%s : finished memory aggregation" % (time.time() - t))
 
-        print("%s : finished memory computation" % (time.time() - t))
-
-        t = time.time()
-        # compute the new memory
-        # corresponds to the 'A' function
-        memory = self.aggregate(memory, features)
-
-        print("%s : finished memory aggregation" % (time.time() - t))
-
-        self.clocknet_mem = memory
+        self.clocknet_mem = features
         return features
 
     def bl_sample(self, features, displ):
@@ -200,7 +200,7 @@ class ClockNet(snt.AbstractModule):
 
         if _DEBUG: print("INPUTS SHAPE...******", inputs.shape)
         initial_state = tf.zeros([self.mem_w, self.mem_h, self.df])
-        _ = tf.scan(self.iterate, inputs[0], initializer=initial_state)
-        return self.clocknet_mem
+        junk = tf.scan(self.iterate, inputs[0], initializer=initial_state)
+        return junk, self.clocknet_mem
 
 
