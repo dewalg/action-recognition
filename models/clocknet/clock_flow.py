@@ -49,6 +49,7 @@ class ClockFlow(snt.AbstractModule):
 
     def iterate(self, memory, frame):
         features = self.flownet.call(self.prev_frame, frame)
+        features = tf.reshape(features, [self.mem_h, self.mem_w , 2])
         return features
 
     def _build(self, inputs):
