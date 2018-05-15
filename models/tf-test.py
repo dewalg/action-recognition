@@ -2,6 +2,7 @@ from pipeline import Pipeline
 from configparser import ConfigParser, ExtendedInterpolation
 import numpy as np
 from clocknet.clocknet import ClockNet
+from clocknet.clocknet import ClockFlow
 from clocknet.resnet import inception_resnet_v2_tf
 import tensorflow as tf
 
@@ -26,7 +27,7 @@ init_op = iterator.make_initializer(queue)
 rgb, labels = iterator.get_next()
 
 with tf.variable_scope('model'):
-    model = ClockNet(num_classes=10)
+    model = ClockFlow(num_classes=10)
     mem = model._build(rgb)
 
 with tf.Session() as sess:
