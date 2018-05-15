@@ -27,19 +27,19 @@ class Resnet:
         self.mem_w = W_f
         self.df = D_f
         self.num_classes = num_classes
-        # self.model = inception_resnet_v2_keras.InceptionResNetV2()
+        self.model = inception_resnet_v2_keras.InceptionResNetV2()
 
     def call(self, inputs):
         # inputs is a 299x299x3 tensor
         # should return a 17x17x1088 tensor
         if _DEBUG: print('resnet call inputs:')
         if _DEBUG: print(inputs)
-        # return self.model.predict(np.array([inputs]))[0]
-        inputs = tf.reshape(inputs, [1, 299, 299, 3])
-        out, _ = inception_resnet_v2_tf.inception_resnet_v2(inputs, num_classes=self.num_classes, dropout_keep_prob=0.5, final_endpoint='Mixed_6a')
-        out = tf.reshape(out, [17, 17, 1088])
-        print("RETURNING FROM RESNET...********")
-        return out
+        return self.model.predict(np.array([inputs]))[0]
+        # inputs = tf.reshape(inputs, [1, 299, 299, 3])
+        # out, _ = inception_resnet_v2_tf.inception_resnet_v2(inputs, num_classes=self.num_classes, dropout_keep_prob=0.5, final_endpoint='Mixed_6a')
+        # out = tf.reshape(out, [17, 17, 1088])
+        # print("RETURNING FROM RESNET...********")
+        # return out
 
     def call_batch(self, inputs):
         # inputs is a dx299x299x3 tensor
@@ -126,12 +126,12 @@ class ClockNet(snt.AbstractModule):
         features = self.resnet.call(frame)
         print("%s : finished resnet features" % (time.time() - start_time))
 
-        t = time.time()
-        # compute the new memory with flow from prev frame
-        # (corresponds to 'w' function in the paper)
-        memory = self.compute_mem(memory, frame)
-        print("AFTER COMPUTE MEM =", memory.shape)
-        print("%s : finished memory computation" % (time.time() - t))
+        # t = time.time()
+        # # compute the new memory with flow from prev frame
+        # # (corresponds to 'w' function in the paper)
+        # memory = self.compute_mem(memory, frame)
+        # print("AFTER COMPUTE MEM =", memory.shape)
+        # print("%s : finished memory computation" % (time.time() - t))
         #
         # t = time.time()
         # # compute the new memory

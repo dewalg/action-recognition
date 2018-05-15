@@ -30,7 +30,7 @@ init_op = iterator.make_initializer(queue)
 rgb, labels = iterator.get_next()
 
 with tf.variable_scope('model'):
-    model = ClockFlow(num_classes=10)
+    model = ClockNet(num_classes=10)
     mem = model._build(rgb)
 
 with tf.Session() as sess:
@@ -38,10 +38,10 @@ with tf.Session() as sess:
     sess.run(tf.global_variables_initializer())
     mem = sess.run([mem])
     print(np.array(mem).shape)
-    flows = np.array(mem)[0]
-    for i in range(flows.shape[0]):
-        print(flows[i])
-        flow_img = lib.flow_to_image(flows[i])
-        unique_name = 'flow_'+str(i)
-        full_out_path = os.path.join('./imgs', unique_name + '.png')
-        imsave(full_out_path, flow_img)
+    # flows = np.array(mem)[0]
+    # for i in range(flows.shape[0]):
+    #     print(flows[i])
+    #     flow_img = lib.flow_to_image(flows[i])
+    #     unique_name = 'flow_'+str(i)
+    #     full_out_path = os.path.join('./imgs', unique_name + '.png')
+    #     imsave(full_out_path, flow_img)
