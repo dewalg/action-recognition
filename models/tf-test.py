@@ -2,7 +2,7 @@ from pipeline import Pipeline
 from configparser import ConfigParser, ExtendedInterpolation
 import numpy as np
 from clocknet.clocknet import ClockNet
-# from clocknet.resnet import inception_resnet_v2_tf
+from clocknet.resnet import inception_resnet_v2_tf
 import tensorflow as tf
 
 config = ConfigParser(interpolation=ExtendedInterpolation())
@@ -30,7 +30,8 @@ rgb, labels = iterator.get_next()
 with tf.variable_scope('model'):
     model = ClockNet(num_classes=10)
     # model = inception_resnet_v2.InceptionResNetV2()
-    print(rgb)
+
+    print("RGB SHAPE IS ****** ", rgb.shape)
     mem = model._build(rgb)
 
 with tf.Session() as sess:
