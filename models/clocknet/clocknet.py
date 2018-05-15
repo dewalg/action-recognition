@@ -75,7 +75,6 @@ class ClockNet(snt.AbstractModule):
         self.mem_h = H_f
         self.mem_w = W_f
         self.df = D_f
-        self.clocknet_mem = tf.zeros([self.mem_w, self.mem_h, self.df])
 
         # memory is initialized randomly
         # self.memory = tf.random_normal([self.mem_h, self.mem_w, self.df],
@@ -140,8 +139,6 @@ class ClockNet(snt.AbstractModule):
         # memory = self.aggregate(memory, features)
         #
         # print("%s : finished memory aggregation" % (time.time() - t))
-
-        self.clocknet_mem = features
         return features
 
     def bl_sample(self, features, displ):
@@ -200,8 +197,7 @@ class ClockNet(snt.AbstractModule):
 
         if _DEBUG: print("INPUTS SHAPE...******", inputs.shape)
         initial_state = tf.zeros([self.mem_w, self.mem_h, self.df])
-        _ = tf.scan(self.iterate, inputs[0], initializer=initial_state)
-        mem = self.clocknet_mem
-        return mem
+        memory = tf.scan(self.iterate, inputs[0], initializer=initial_state)
+        return memory[inputs[0].shape-1]
 
 
