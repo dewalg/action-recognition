@@ -29,12 +29,10 @@ class Resnet:
     def call(self, inputs):
         # inputs is a 299x299x3 tensor
         # should return a 17x17x1088 tensor
-        return self.model.predict(np.array([inputs]))[0]
-        # inputs = tf.reshape(inputs, [1, 299, 299, 3])
-        # out, _ = inception_resnet_v2_tf.inception_resnet_v2(inputs, num_classes=self.num_classes, dropout_keep_prob=0.5, final_endpoint='Mixed_6a')
-        # out = tf.reshape(out, [17, 17, 1088])
-        # print("RETURNING FROM RESNET...********")
-        # return out
+        inputs = tf.reshape(inputs, [1, 299, 299, 3])
+        out = self.model(inputs)
+        out = tf.reshape(out, [17, 17, 1088])
+        return out
 
     def call_batch(self, inputs):
         # inputs is a dx299x299x3 tensor
