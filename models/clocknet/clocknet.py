@@ -123,13 +123,13 @@ class ClockNet(snt.AbstractModule):
 
         # compute the new memory with flow from prev frame
         # (corresponds to 'w' function in the paper)
-        memory = self.compute_mem(memory, frame)
+        # memory = self.compute_mem(memory, frame)
+        #
+        # # compute the new memory
+        # # corresponds to the 'A' function
+        # memory = self.aggregate(memory, features)
 
-        # compute the new memory
-        # corresponds to the 'A' function
-        memory = self.aggregate(memory, features)
-
-        return memory
+        return features
 
     # @staticmethod
     # def bl_kernel(a, b):
