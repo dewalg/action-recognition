@@ -2,7 +2,7 @@ from pipeline import Pipeline
 from configparser import ConfigParser, ExtendedInterpolation
 import numpy as np
 from clocknet.clocknet import ClockNet
-from clocknet.clocknet import ClockFlow
+from clocknet.clock_flow import ClockFlow
 from clocknet.resnet import inception_resnet_v2_tf
 import tensorflow as tf
 
