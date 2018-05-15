@@ -40,6 +40,7 @@ with tf.Session() as sess:
     print(np.array(mem).shape)
     flows = np.array(mem)[0]
     for i in range(flows.shape[0]):
+        print(flows[i])
         flow_img = lib.flow_to_image(flows[i])
         unique_name = 'flow_'+str(i)
         full_out_path = os.path.join('./imgs', unique_name + '.png')
