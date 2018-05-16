@@ -13,10 +13,10 @@ from scipy import misc
 from datetime import datetime
 from configparser import ConfigParser, ExtendedInterpolation
 
-#config = ConfigParser(interpolation=ExtendedInterpolation())
-#config.read('../../../config/config.ini')
+# config = ConfigParser(interpolation=ExtendedInterpolation())
+# config.read('../../../config/config.ini')
 
-#CROP_SIZE = config['hp'].getint('crop_size')
+# CROP_SIZE = config['hp'].getint('crop_size')
 CROP_SIZE = 299
 
 _DEBUG = False
@@ -73,10 +73,15 @@ class Net(object):
         resize = misc.imresize(img, (new_h, new_w), 'bilinear')
         wrange = resize.shape[1] - CROP_SIZE
         hrange = resize.shape[0] - CROP_SIZE
-        w_crop = int(wrange/2)
-        h_crop = int(hrange/2)
+        w_crop = int(wrange / 2)
+        h_crop = int(hrange / 2)
 
         return resize[h_crop:h_crop + CROP_SIZE, w_crop:w_crop + CROP_SIZE]
+
+    def load_ckpt(self, checkpoint=CKPT_LOC):
+        saver = tf.train.Saver()
+        with tf.Session() as sess:
+            saver.restore(sess, checkpoint)
 
     def compute_flow(self, input_a, input_b, checkpoint=CKPT_LOC):
         """
@@ -86,49 +91,22 @@ class Net(object):
         :param input_b: rgb input frame (curr)
         :return: h_f x w_f x 2 flow information
         """
-        #input_a = imread(input_a)
-        #input_b = imread(input_b)
-
-        #input_a = self.resize_crop(input_a)
-        #input_b = self.resize_crop(input_b)
-        
-        print("INPUT A SHAPE******",type(input_a))
-        #print("INPUT B SHAPE******",input_b.shape)
-        # Convert from RGB -> BGR
-        #input_a = input_a[..., [2, 1, 0]]
-        #input_b = input_b[..., [2, 1, 0]]
         channels = tf.unstack(input_a, axis=-1)
         input_a = tf.stack([channels[2], channels[1], channels[0]], axis=-1)
         channels = tf.unstack(input_a, axis=-1)
         input_b = tf.stack([channels[2], channels[1], channels[0]], axis=-1)
-        # Scale from [0, 255] -> [0.0, 1.0] if needed
-        #if input_a.max() > 1.0:
-        #    input_a = input_a / 255.0
-        #if input_b.max() > 1.0:
-        #    input_b = input_b / 255.0
         input_a = tf.divide(input_a, 255.0)
         input_b = tf.divide(input_b, 255.0)
+
         # TODO: This is a hack, we should get rid of this
         training_schedule = LONG_SCHEDULE
-        #inputs = {
-        #    'input_a': tf.expand_dims(tf.constant(input_a, dtype=tf.float32), 0),
-        #    'input_b': tf.expand_dims(tf.constant(input_b, dtype=tf.float32), 0),
-        #}
         inputs = {
             'input_a': tf.expand_dims(input_a, 0),
             'input_b': tf.expand_dims(input_b, 0),
         }
         predictions = self.model(inputs, training_schedule)
-        if _DEBUG: print("###### PREDICTION KEYS = ", predictions.keys())
         flow = predictions['flow']
         pred_flow = tf.image.resize_bilinear(flow, tf.stack([H_f, W_f]), align_corners=True)
-
-        saver = tf.train.Saver()
-
-        #with tf.Session() as sess:
-        #        saver.restore(sess, checkpoint)
-        #        pred_flow = sess.run(pred_flow)[0, :, :, :]
-
         return pred_flow
 
     def test(self, checkpoint, input_a_path, input_b_path, out_path, save_image=True, save_flo=False):

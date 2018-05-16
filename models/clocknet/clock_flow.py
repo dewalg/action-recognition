@@ -1,12 +1,6 @@
-'''
-Clocknet is based on the paper "Memory Warps for Learning Long-Term Online
-Video Representations" by Vu et al.
-'''
 
 # using python 3
 
-import numpy as np
-import time
 import tensorflow as tf
 import sonnet as snt
 from .flownet.src.flownet2 import flownet2
@@ -15,7 +9,7 @@ from .flownet.src.flownet2 import flownet2
 _DEBUG = True
 
 H_f = W_f = 17
-D_f = 1088
+D_f = 2
 
 
 class Flownet:
@@ -23,18 +17,13 @@ class Flownet:
         self.mem_h = H_f
         self.mem_w = W_f
         self.df = D_f
+        # load FlowNet checkpoint.
+        self.net = flownet2.FlowNet2()
+        self.net.load_ckpt()
 
     def call(self, prev_frame, curr_frame):
-        """
-        :param prev_frame: rgb input frame - should be 399 x 399 x 3
-        :param curr_frame: rgb input frame - should be 399 x 399 x 3
-        :return: 17 x 17 x 2 flow information.
-        """
         # should return a h_f x w_f x 2 tensor
-        net = flownet2.FlowNet2()
-        return net.compute_flow(prev_frame, curr_frame)
-        # return tf.random_normal([self.mem_h, self.mem_w, 2],
-        #                                mean=0, stddev=1)
+        return self.net.compute_flow(prev_frame, curr_frame)
 
 
 class ClockFlow(snt.AbstractModule):
@@ -49,12 +38,12 @@ class ClockFlow(snt.AbstractModule):
 
     def iterate(self, memory, frame):
         features = self.flownet.call(self.prev_frame, frame)
-        features = tf.reshape(features, [self.mem_h, self.mem_w , 2])
+        features = tf.reshape(features, [self.mem_h, self.mem_w , self.df])
         return features
 
     def _build(self, inputs):
-        if _DEBUG: print("INPUTS SHAPE...******", inputs.shape)
-        initial_state = tf.zeros([self.mem_w, self.mem_h, 2])
+        if _DEBUG: print("CLOCK_RGB debug: inputs shape = ", inputs.shape)
+        initial_state = tf.zeros([self.mem_w, self.mem_h, self.df])
         memory = tf.scan(self.iterate, inputs[0], initializer=initial_state)
         return memory
 
