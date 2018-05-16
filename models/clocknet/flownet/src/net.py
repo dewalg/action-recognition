@@ -21,7 +21,7 @@ CROP_SIZE = 299
 
 _DEBUG = False
 H_f = W_f = 17
-CKPT_LOC = './checkpoints/FlowNet2/flownet-2.ckpt-0'
+CKPT_LOC = '/nfs/action-recognition/models/clocknet/flownet/checkpoints/FlowNet2/flownet-2.ckpt-0'
 
 slim = tf.contrib.slim
 
