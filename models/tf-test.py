@@ -30,11 +30,13 @@ init_op = iterator.make_initializer(queue)
 
 rgb, labels = iterator.get_next()
 
-with tf.variable_scope('clocknet'):
-    model = ClockFlow(num_classes=10)
-    mem = model._build(rgb)
+# with tf.variable_scope('clocknet'):
+#     model = ClockFlow(num_classes=10)
+#     mem = model._build(rgb)
 
 with tf.Session() as sess:
+    model = ClockFlow(num_classes=10)
+    mem = model._build(rgb)
     sess.run(init_op)
     sess.run(tf.global_variables_initializer())
     mem = sess.run([mem])
