@@ -34,7 +34,8 @@ class ClockFlow(snt.AbstractModule):
         self.mem_w = W_f
         self.df = D_f
         self.flownet = Flownet()
-        self.prev_frame = tf.random_normal([self.mem_h, self.mem_w, 3], mean=0, stddev=1)
+        # self.prev_frame = tf.random_normal([self.mem_h, self.mem_w, 3], mean=0, stddev=1)
+        self.prev_frame = tf.zeros([self.mem_h, self.mem_w, 3])
 
     def iterate(self, memory, frame):
         features = self.flownet.call(self.prev_frame, frame)
@@ -43,9 +44,15 @@ class ClockFlow(snt.AbstractModule):
         return features
 
     def _build(self, inputs):
+        ones = tf.ones([32, self.mem_w, self.mem_h, self.df])
+        zeros = tf.zeros([32, self.mem_w, self.mem_h, self.df])
+        ones = tf.expand_dims(ones, 0)
+        zeros = tf.expand_dims(zeros, 0)
+        inputs = tf.concat([ones, zeros], 0)
         if _DEBUG: print("CLOCK_RGB debug: inputs shape = ", inputs.shape)
+
         initial_state = tf.zeros([self.mem_w, self.mem_h, self.df])
-        memory = tf.scan(self.iterate, inputs[0], initializer=initial_state)
+        memory = tf.scan(self.iterate, inputs, initializer=initial_state)
         return memory
 
 

@@ -81,6 +81,7 @@ class Net(object):
     def load_ckpt(self, checkpoint=CKPT_LOC):
         saver = tf.train.Saver()
         with tf.Session() as sess:
+            print("******* FLOW NET SESSION RESTORED ********")
             saver.restore(sess, checkpoint)
 
     def compute_flow(self, input_a, input_b, checkpoint=CKPT_LOC):
