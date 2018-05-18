@@ -35,6 +35,8 @@ rgb, labels = iterator.get_next()
 #     mem = model._build(rgb)
 
 with tf.Session() as sess:
+    config = tf.ConfigProto()
+    config.gpu_options.per_process_gpu_memory_fraction = 0.3
     model = ClockFlow(num_classes=10)
     mem = model._build(rgb)
     sess.run(init_op)
