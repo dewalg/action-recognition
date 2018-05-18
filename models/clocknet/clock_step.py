@@ -80,11 +80,12 @@ class ClockStep(snt.AbstractModule):
 
     def _build(self, inputs):
         if _DEBUG: print("DEBUG: ClockStep = INPUTS SHAPE = ", inputs.shape)
-        # clock_flow = ClockFlow(num_classes=10)
-        # flows = clock_flow._build(inputs)
-        flows = tf.random_normal([64, 17, 17, 2], mean=0, stddev=1)
-        clock_rgb = ClockRgb(num_classes=10)
-        rgbs = clock_rgb._build(inputs)
+        clock_flow = ClockFlow(num_classes=10)
+        flows = clock_flow._build(inputs)
+        
+        # clock_rgb = ClockRgb(num_classes=10)
+        # rgbs = clock_rgb._build(inputs)
+        rgbs = tf.random_normal([64, 17, 17, 1088], mean=0, stddev=1)
         initial_state = tf.zeros([self.mem_w, self.mem_h, self.df])
         memory = tf.scan(self.iterate, (flows, rgbs), initializer=initial_state)
         return memory
