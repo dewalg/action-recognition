@@ -40,6 +40,7 @@ with tf.Session() as sess:
     model = ClockFlow(num_classes=10)
     mem = model._build(rgb)
     sess.run(init_op)
+    print("Labels ********* = ", labels)
     sess.run(tf.global_variables_initializer())
     mem = sess.run([mem])
     print(np.array(mem).shape)
