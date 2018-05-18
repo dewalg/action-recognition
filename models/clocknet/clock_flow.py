@@ -53,7 +53,7 @@ class ClockFlow(snt.AbstractModule):
         if _DEBUG: print("CLOCK_RGB debug: inputs shape = ", inputs.shape)
 
         initial_state = tf.zeros([self.mem_w, self.mem_h, self.df])
-        memory = tf.scan(self.iterate, inputs, initializer=initial_state)
+        memory = tf.scan(self.iterate, inputs[0], initializer=initial_state)
         return memory
 
 
