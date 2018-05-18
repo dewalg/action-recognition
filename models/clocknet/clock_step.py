@@ -82,7 +82,7 @@ class ClockStep(snt.AbstractModule):
         if _DEBUG: print("DEBUG: ClockStep = INPUTS SHAPE = ", inputs.shape)
         clock_flow = ClockFlow(num_classes=10)
         flows = clock_flow._build(inputs)
-        
+
         # clock_rgb = ClockRgb(num_classes=10)
         # rgbs = clock_rgb._build(inputs)
         rgbs = tf.random_normal([64, 17, 17, 1088], mean=0, stddev=1)
