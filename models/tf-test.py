@@ -44,10 +44,10 @@ with tf.Session() as sess:
     mem = sess.run([mem])
     print(np.array(mem).shape)
     # if clock flow, then visualize
-    flows = np.array(mem)[0]
-    for i in range(flows.shape[0]):
-        print(flows[i].shape)
-        flow_img = lib.flow_to_image(flows[i])
-        unique_name = 'flow_'+str(i)
-        full_out_path = os.path.join('./imgs', unique_name + '.png')
-        imsave(full_out_path, flow_img)
+    # flows = np.array(mem)[0]
+    # for i in range(flows.shape[0]):
+    #     print(flows[i].shape)
+    #     flow_img = lib.flow_to_image(flows[i])
+    #     unique_name = 'flow_'+str(i)
+    #     full_out_path = os.path.join('./imgs', unique_name + '.png')
+    #     imsave(full_out_path, flow_img)
