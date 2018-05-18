@@ -4,8 +4,8 @@ import numpy as np
 from clocknet.clocknet import ClockNet
 from clocknet.clock_flow import ClockFlow
 from clocknet.clock_rgb import ClockRgb
+from clocknet.clock_step import ClockStep
 import clocknet.flownet.src.flowlib as lib
-from clocknet.resnet import inception_resnet_v2_tf
 import tensorflow as tf
 import os
 from scipy.misc import imread, imsave
@@ -35,13 +35,12 @@ rgb, labels = iterator.get_next()
 #     mem = model._build(rgb)
 
 with tf.Session() as sess:
-    config = tf.ConfigProto()
-    config.gpu_options.per_process_gpu_memory_fraction = 0.3
-    model = ClockFlow(num_classes=10)
-    mem = model._build(rgb)
     sess.run(init_op)
-    print("Labels ********* = ", labels)
     sess.run(tf.global_variables_initializer())
+
+    model = ClockStep(num_classes=10)
+    mem = model._build(rgb)
+
     mem = sess.run([mem])
     print(np.array(mem).shape)
     # if clock flow, then visualize

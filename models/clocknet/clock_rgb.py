@@ -41,7 +41,7 @@ class Resnet:
 
 
 class ClockRgb(snt.AbstractModule):
-    def __init__(self, num_classes, name='clocknet'):
+    def __init__(self, num_classes, name='clockrgb'):
         super(ClockRgb, self).__init__(name=name)
         self.num_classes = num_classes
         self.mem_h = H_f
