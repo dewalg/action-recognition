@@ -44,12 +44,12 @@ class ClockFlow(snt.AbstractModule):
         return features
 
     def _build(self, inputs):
-        ones = tf.ones([32, 399, 399, 3])
-        zeros = tf.zeros([32, 399, 399, 3])
-        ones = tf.expand_dims(ones, 0)
-        zeros = tf.expand_dims(zeros, 0)
-        inputs = tf.concat([ones, zeros], 0)
-        inputs = tf.reshape(inputs, [64, 399, 399, 3])
+        # ones = tf.ones([32, 399, 399, 3])
+        # zeros = tf.zeros([32, 399, 399, 3])
+        # ones = tf.expand_dims(ones, 0)
+        # zeros = tf.expand_dims(zeros, 0)
+        # inputs = tf.concat([ones, zeros], 0)
+        # inputs = tf.reshape(inputs, [64, 399, 399, 3])
         if _DEBUG: print("CLOCK_RGB debug: inputs shape = ", inputs.shape)
 
         initial_state = tf.zeros([self.mem_w, self.mem_h, self.df])
