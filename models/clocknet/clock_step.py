@@ -40,7 +40,7 @@ class ClockStep(snt.AbstractModule):
         if _DEBUG: print("Debug: ClockStep = FLOW SHAPE = ", flow.shape)
         if _DEBUG: print("Debug: ClockStep = RGBS SHAPE = ", rgb.shape)
         start_time = time.time()
-        memory = self.compute_mem(memory, flow)
+        memory = tf.random_normal([17, 17, 1088], mean=0, stddev=1)
         if _DEBUG: print("Debug: ClockStep = AFTER COMPUTE MEM = ", memory.shape)
         if _DEBUG: print("Debug: ClockStep = %s : finished memory computation" % (time.time() - start_time))
 
@@ -82,10 +82,8 @@ class ClockStep(snt.AbstractModule):
         if _DEBUG: print("DEBUG: ClockStep = INPUTS SHAPE = ", inputs.shape)
         clock_flow = ClockFlow(num_classes=10)
         flows = clock_flow._build(inputs)
-
-        # clock_rgb = ClockRgb(num_classes=10)
-        # rgbs = clock_rgb._build(inputs)
-        rgbs = tf.random_normal([64, 17, 17, 1088], mean=0, stddev=1)
+        clock_rgb = ClockRgb(num_classes=10)
+        rgbs = clock_rgb._build(inputs)
         initial_state = tf.zeros([self.mem_w, self.mem_h, self.df])
         memory = tf.scan(self.iterate, (flows, rgbs), initializer=initial_state)
         return memory
