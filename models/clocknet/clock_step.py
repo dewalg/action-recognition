@@ -18,13 +18,14 @@ H_f = W_f = 17
 D_f = 1088
 
 
-class ClockStep(snt.AbstractModule):
+class ClockStep():
     def __init__(self, num_classes, name='clockstep'):
-        super(ClockStep, self).__init__(name=name)
         self.num_classes = num_classes
         self.mem_h = H_f
         self.mem_w = W_f
         self.df = D_f
+        self.clock_flow = ClockFlow(num_classes=10)
+        self.clock_rgb = ClockRgb(num_classes=10)
 
     def compute_mem(self, memory, flow):
         memory = self.bl_sample(memory, flow)
@@ -80,10 +81,10 @@ class ClockStep(snt.AbstractModule):
 
     def _build(self, inputs):
         if _DEBUG: print("DEBUG: ClockStep = INPUTS SHAPE = ", inputs.shape)
-        clock_flow = ClockFlow(num_classes=10)
-        flows = clock_flow._build(inputs)
-        clock_rgb = ClockRgb(num_classes=10)
-        rgbs = clock_rgb._build(inputs)
+        #clock_flow = ClockFlow(num_classes=10)
+        flows = self.clock_flow._build(inputs)
+        #clock_rgb = ClockRgb(num_classes=10)
+        rgbs = self.clock_rgb._build(inputs)
         initial_state = tf.zeros([self.mem_w, self.mem_h, self.df])
         memory = tf.scan(self.iterate, (flows, rgbs), initializer=initial_state)
         return memory

@@ -7,6 +7,7 @@ from clocknet.clock_rgb import ClockRgb
 from clocknet.clock_step import ClockStep
 import clocknet.flownet.src.flowlib as lib
 import tensorflow as tf
+from tensorflow.python import debug as tf_debug
 import os
 from scipy.misc import imread, imsave
 
@@ -31,18 +32,18 @@ init_op = iterator.make_initializer(queue)
 rgb, labels = iterator.get_next()
 
 # with tf.variable_scope('clocknet'):
-#     model = ClockFlow(num_classes=10)
-#     mem = model._build(rgb)
+model = ClockFlow(num_classes=10)
+mem = model._build(rgb)
 
 with tf.Session() as sess:
-    model = ClockStep(num_classes=10)
-    mem = model._build(rgb)
 
     sess.run(init_op)
     sess.run(tf.global_variables_initializer())
+    summary_writer = tf.summary.FileWriter("./tmp", sess.graph)
+    summary_writer.close()
 
-    mem = sess.run([mem])
-    print(np.array(mem).shape)
+#    mem = sess.run([mem])
+#    print(np.array(mem).shape)
     # if clock flow, then visualize
     # flows = np.array(mem)[0]
     # for i in range(flows.shape[0]):
