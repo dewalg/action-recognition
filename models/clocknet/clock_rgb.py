@@ -4,12 +4,7 @@ Video Representations" by Vu et al.
 '''
 
 # using python 3
-
-import numpy as np
-import time
 import tensorflow as tf
-import sonnet as snt
-
 from resnet import inception_resnet_v2_keras
 
 _DEBUG = True
@@ -18,7 +13,7 @@ H_f = W_f = 17
 D_f = 1088
 
 
-class Resnet:
+class ClockRgb:
     def __init__(self, num_classes = 10):
         self.mem_h = H_f
         self.mem_w = W_f
@@ -39,34 +34,41 @@ class Resnet:
         # should return a dx17x17x1088 tensor
         return self.model.predict(inputs)
 
-
-class ClockRgb:
-    def __init__(self, num_classes):
-        self.num_classes = num_classes
-        self.mem_h = H_f
-        self.mem_w = W_f
-        self.df = D_f
-        self.resnet = Resnet(self.num_classes)
-
-    def iterate(self, memory, frame):
-        """
-        Iterate does required computations on a frame level
-        :param memory: the current memory
-        :param frame: the frame (or time step) currently being processed
-        :return: void - updates the memory
-        """
-        if _DEBUG: print("CLOCK_RGB debug: frame shape = ", frame.shape)
-
-        start_time = time.time()
-        if _DEBUG: print("CLOCK_RGB debug: starting iteration")
-        features = self.resnet.call(frame)
-        if _DEBUG: print("CLOCK_RGB debug: = %s : finished resnet features" % (time.time() - start_time))
-        return features
-
     def _build(self, inputs):
         if _DEBUG: print("CLOCK_RGB debug: inputs shape = ", inputs.shape)
-        initial_state = tf.zeros([self.mem_w, self.mem_h, self.df])
-        memory = tf.scan(self.iterate, inputs[0], initializer=initial_state)
-        return memory
+        out = self.call_batch(inputs)
+        if _DEBUG: print("CLOCK_RGB debug: outputs shape = ", out.shape)
+        return out
 
+
+# class ClockRgb_orig:
+#     def __init__(self, num_classes):
+#         self.num_classes = num_classes
+#         self.mem_h = H_f
+#         self.mem_w = W_f
+#         self.df = D_f
+#         self.resnet = Resnet(self.num_classes)
+#
+#     def iterate(self, memory, frame):
+#         """
+#         Iterate does required computations on a frame level
+#         :param memory: the current memory
+#         :param frame: the frame (or time step) currently being processed
+#         :return: void - updates the memory
+#         """
+#         if _DEBUG: print("CLOCK_RGB debug: frame shape = ", frame.shape)
+#
+#         start_time = time.time()
+#         if _DEBUG: print("CLOCK_RGB debug: starting iteration")
+#         features = self.resnet.call(frame)
+#         if _DEBUG: print("CLOCK_RGB debug: = %s : finished resnet features" % (time.time() - start_time))
+#         return features
+#
+#     def _build(self, inputs):
+#         if _DEBUG: print("CLOCK_RGB debug: inputs shape = ", inputs.shape)
+#         initial_state = tf.zeros([self.mem_w, self.mem_h, self.df])
+#         # memory = tf.scan(self.iterate, inputs[0], initializer=initial_state)
+#         return self.res
+#         return memory
+#
 

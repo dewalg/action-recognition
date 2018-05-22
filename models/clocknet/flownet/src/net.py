@@ -78,11 +78,11 @@ class Net(object):
 
         return resize[h_crop:h_crop + CROP_SIZE, w_crop:w_crop + CROP_SIZE]
 
-    def load_ckpt(self, checkpoint=CKPT_LOC):
+    def load_ckpt(self, sess, checkpoint=CKPT_LOC):
         saver = tf.train.Saver()
-        with tf.Session() as sess:
-            print("******* FLOW NET SESSION RESTORED ********")
-            saver.restore(sess, checkpoint)
+        # with tf.Session() as sess:
+        print("******* FLOW NET SESSION RESTORED ********")
+        saver.restore(sess, checkpoint)
 
     def compute_flow(self, input_a, input_b, checkpoint=CKPT_LOC):
         """

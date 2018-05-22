@@ -6,9 +6,7 @@ Video Representations" by Vu et al.
 
 import time
 import tensorflow as tf
-import sonnet as snt
-
-# from clock_flow import ClockFlow
+from clock_flow import ClockFlow
 from clock_rgb import ClockRgb
 
 # debug flag for debugging outputs
@@ -18,23 +16,25 @@ H_f = W_f = 17
 D_f = 1088
 
 
-class ClockStep():
+class ClockStep:
     def __init__(self, num_classes, name='clockstep'):
         self.num_classes = num_classes
         self.mem_h = H_f
         self.mem_w = W_f
         self.df = D_f
-        self.clock_flow = ClockFlow(num_classes=10)
-        self.clock_rgb = ClockRgb(num_classes=10)
 
-        # self.clock_flow = ClockFlow(num_classes=10)
-        self.clock_rgb = ClockRgb(num_classes=10)
+        with tf.variable_scope("clock_flow", reuse=True):
+            self.clock_flow = ClockFlow(num_classes=10)
+
+        with tf.variable_scope("clock_rgb", reuse=True):
+            self.clock_rgb = ClockRgb(num_classes=10)
+
+    def init_flow(self, tfsession):
+        self.clock_flow.load(tfsession)
 
     def compute_mem(self, memory, flow):
         x_flow = tf.slice(flow, [0, 0, 0], [-1, -1, 1])
         y_flow = tf.slice(flow, [0, 0, 1], [-1, -1, 1])
-        print("FLOW DIM")
-        print(x_flow)
         memory = self.bilinear_sampler(memory, x_flow, y_flow)
         return memory
 
@@ -48,7 +48,6 @@ class ClockStep():
         if _DEBUG: print("Debug: ClockStep = FLOW SHAPE = ", flow.shape)
         if _DEBUG: print("Debug: ClockStep = RGBS SHAPE = ", rgb.shape)
         start_time = time.time()
-        # memory = tf.random_normal([17, 17, 1088], mean=0, stddev=1)
         memory = self.compute_mem(memory, flow)
         if _DEBUG: print("Debug: ClockStep = AFTER COMPUTE MEM = ", memory.shape)
         if _DEBUG: print("Debug: ClockStep = %s : finished memory computation" % (time.time() - start_time))
@@ -141,9 +140,13 @@ class ClockStep():
 
     def _build(self, inputs):
         if _DEBUG: print("DEBUG: ClockStep = INPUTS SHAPE = ", inputs.shape)
-        # flows = self.clock_flow._build(inputs)
-        flows = tf.random_uniform([64, 17, 17, 2], maxval=1)
-        rgbs = self.clock_rgb._build(inputs)
+
+        with tf.variable_scope('clock_flow', reuse=tf.AUTO_REUSE):
+            flows = self.clock_flow._build(inputs)
+
+        with tf.variable_scope('clock_rgb', reuse=tf.AUTO_REUSE):
+            rgbs = self.clock_rgb._build(inputs)
+
         initial_state = tf.zeros([self.mem_w, self.mem_h, self.df])
         memory = tf.scan(self.iterate, (flows, rgbs), initializer=initial_state)
         return memory

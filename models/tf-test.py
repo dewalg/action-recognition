@@ -29,6 +29,7 @@ with tf.variable_scope('clocknet'):
     mem = model._build(rgb)
 
 with tf.Session() as sess:
+    model.init_flow(sess)
     sess.run(init_op)
     sess.run(tf.global_variables_initializer())
     writer = tf.summary.FileWriter("./profiler", sess.graph)
