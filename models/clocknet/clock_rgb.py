@@ -10,7 +10,7 @@ import time
 import tensorflow as tf
 import sonnet as snt
 
-from .resnet import inception_resnet_v2_keras
+from resnet import inception_resnet_v2_keras
 
 _DEBUG = True
 
@@ -40,9 +40,8 @@ class Resnet:
         return self.model.predict(inputs)
 
 
-class ClockRgb(snt.AbstractModule):
-    def __init__(self, num_classes, name='clockrgb'):
-        super(ClockRgb, self).__init__(name=name)
+class ClockRgb:
+    def __init__(self, num_classes):
         self.num_classes = num_classes
         self.mem_h = H_f
         self.mem_w = W_f

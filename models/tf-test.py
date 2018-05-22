@@ -1,14 +1,8 @@
 from pipeline import Pipeline
 from configparser import ConfigParser, ExtendedInterpolation
 import numpy as np
-from clocknet.clocknet import ClockNet
-from clocknet.clock_flow import ClockFlow
-from clocknet.clock_rgb import ClockRgb
 from clocknet.clock_step import ClockStep
-import clocknet.flownet.src.flowlib as lib
 import tensorflow as tf
-import os
-from scipy.misc import imread, imsave
 
 config = ConfigParser(interpolation=ExtendedInterpolation())
 config.read('../config/config.ini')
@@ -30,24 +24,18 @@ init_op = iterator.make_initializer(queue)
 
 rgb, labels = iterator.get_next()
 
-# with tf.variable_scope('clocknet'):
-#     model = ClockFlow(num_classes=10)
-#     mem = model._build(rgb)
-
-with tf.Session() as sess:
+with tf.variable_scope('clocknet'):
     model = ClockStep(num_classes=10)
     mem = model._build(rgb)
 
+
+with tf.Session() as sess:
     sess.run(init_op)
     sess.run(tf.global_variables_initializer())
+    writer = tf.summary.FileWriter("./profiler", sess.graph)
 
-    mem = sess.run([mem])
+    run_options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
+    run_metadata = tf.RunMetadata()
+    mem = sess.run([mem], options=run_options, run_metadata=run_metadata)
+    writer.add_run_metadata(run_metadata, 'step001')
     print(np.array(mem).shape)
-    # if clock flow, then visualize
-    # flows = np.array(mem)[0]
-    # for i in range(flows.shape[0]):
-    #     print(flows[i].shape)
-    #     flow_img = lib.flow_to_image(flows[i])
-    #     unique_name = 'flow_'+str(i)
-    #     full_out_path = os.path.join('./imgs', unique_name + '.png')
-    #     imsave(full_out_path, flow_img)

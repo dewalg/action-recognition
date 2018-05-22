@@ -10,6 +10,8 @@
 import png
 import numpy as np
 import matplotlib.colors as cl
+import matplotlib as mpl
+mpl.use('TkAgg')
 import matplotlib.pyplot as plt
 from PIL import Image
 

@@ -2,7 +2,7 @@
 
 import tensorflow as tf
 import sonnet as snt
-from .flownet.src.flownet2 import flownet2
+from flownet.src.flownet2 import flownet2
 
 # debug flag for debugging outputs
 _DEBUG = True
@@ -25,9 +25,8 @@ class Flownet:
         return self.net.compute_flow(prev_frame, curr_frame)
 
 
-class ClockFlow(snt.AbstractModule):
-    def __init__(self, num_classes, name='clockflow'):
-        super(ClockFlow, self).__init__(name=name)
+class ClockFlow():
+    def __init__(self, num_classes):
         self.num_classes = num_classes
         self.mem_h = H_f
         self.mem_w = W_f
