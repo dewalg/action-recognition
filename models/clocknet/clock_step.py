@@ -24,6 +24,8 @@ class ClockStep():
         self.mem_h = H_f
         self.mem_w = W_f
         self.df = D_f
+        self.clock_flow = ClockFlow(num_classes=10)
+        self.clock_rgb = ClockRgb(num_classes=10)
 
         # self.clock_flow = ClockFlow(num_classes=10)
         self.clock_rgb = ClockRgb(num_classes=10)
