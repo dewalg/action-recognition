@@ -5,7 +5,7 @@ Video Representations" by Vu et al.
 
 # using python 3
 import tensorflow as tf
-from resnet import inception_resnet_v2_keras
+from .resnet import inception_resnet_v2_keras
 
 _DEBUG = True
 
@@ -32,7 +32,8 @@ class ClockRgb:
     def call_batch(self, inputs):
         # inputs is a dx299x299x3 tensor
         # should return a dx17x17x1088 tensor
-        return self.model.predict(inputs)
+        print(inputs)
+        return self.model(inputs)
 
     def _build(self, inputs):
         if _DEBUG: print("CLOCK_RGB debug: inputs shape = ", inputs.shape)

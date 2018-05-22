@@ -6,8 +6,8 @@ Video Representations" by Vu et al.
 
 import time
 import tensorflow as tf
-from clock_flow import ClockFlow
-from clock_rgb import ClockRgb
+from .clock_flow import ClockFlow
+from .clock_rgb import ClockRgb
 
 # debug flag for debugging outputs
 _DEBUG = True
@@ -23,10 +23,10 @@ class ClockStep:
         self.mem_w = W_f
         self.df = D_f
 
-        with tf.variable_scope("clock_flow", reuse=True):
-            self.clock_flow = ClockFlow(num_classes=10)
+        with tf.variable_scope("clock_flow", reuse=tf.AUTO_REUSE):
+            self.clock_flow = ClockFlow()
 
-        with tf.variable_scope("clock_rgb", reuse=True):
+        with tf.variable_scope("clock_rgb", reuse=tf.AUTO_REUSE):
             self.clock_rgb = ClockRgb(num_classes=10)
 
     def init_flow(self, tfsession):
@@ -145,7 +145,7 @@ class ClockStep:
             flows = self.clock_flow._build(inputs)
 
         with tf.variable_scope('clock_rgb', reuse=tf.AUTO_REUSE):
-            rgbs = self.clock_rgb._build(inputs)
+            rgbs = self.clock_rgb._build(inputs[0])
 
         initial_state = tf.zeros([self.mem_w, self.mem_h, self.df])
         memory = tf.scan(self.iterate, (flows, rgbs), initializer=initial_state)

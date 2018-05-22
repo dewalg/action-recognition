@@ -24,9 +24,9 @@ init_op = iterator.make_initializer(queue)
 
 rgb, labels = iterator.get_next()
 
-with tf.variable_scope('clocknet'):
-    model = ClockStep(num_classes=10)
-    mem = model._build(rgb)
+#with tf.variable_scope('clocknet'):
+model = ClockStep(num_classes=10)
+mem = model._build(rgb)
 
 with tf.Session() as sess:
     model.init_flow(sess)

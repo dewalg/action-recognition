@@ -2,7 +2,7 @@
 
 import tensorflow as tf
 import sonnet as snt
-from flownet.src.flownet2 import flownet2
+from .flownet.src.flownet2 import flownet2
 
 # debug flag for debugging outputs
 _DEBUG = True
