@@ -29,8 +29,8 @@ class ClockStep:
         with tf.variable_scope("clock_rgb", reuse=tf.AUTO_REUSE):
             self.clock_rgb = ClockRgb(num_classes=10)
 
-    def init_flow(self, tfsession):
-        self.clock_flow.load(tfsession)
+    def init_flow(self, tfsession, vars=None):
+        self.clock_flow.load(tfsession, vars)
 
     def compute_mem(self, memory, flow):
         x_flow = tf.slice(flow, [0, 0, 0], [-1, -1, 1])
