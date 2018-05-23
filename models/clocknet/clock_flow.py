@@ -21,7 +21,7 @@ class ClockFlow:
         self.prev_frame = tf.multiply(tf.ones([399, 399, 3]), 255.0)
 
     def load(self, tfsession, vars=None):
-        self.net.load_ckpt(vars, tfsession)
+        self.net.load_ckpt(tfsession, vars)
 
     def iterate(self, memory, frame):
         if _DEBUG: print("CLOCK_FLOW debug: frame shape = ", frame.shape)

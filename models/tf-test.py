@@ -28,10 +28,21 @@ rgb, labels = iterator.get_next()
 model = ClockStep(num_classes=10)
 mem = model._build(rgb)
 
-vars_to_load_flow = tf.contrib.framework.get_variables_to_restore(include=['clock_flow'])
+all_vars = tf.all_variables()
+model_vars = [k for k in all_vars if k.name.startswith("clock_flow")]
+
+v_flow = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope='clock_flow')
+print("LEN OF VARS")
+print(len(v_flow))
+if len(v_flow) > 0:
+    print(v_flow[0])
+    print(v_flow[1])
+    print(v_flow[2])
+
+v_dict = {v.op.name: v for v in v_flow}
 
 with tf.Session() as sess:
-    model.init_flow(sess, vars_to_load_flow)
+    model.init_flow(sess, model_vars)
     sess.run(init_op)
     sess.run(tf.global_variables_initializer())
     writer = tf.summary.FileWriter("./profiler", sess.graph)

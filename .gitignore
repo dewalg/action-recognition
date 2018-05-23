@@ -1,6 +1,7 @@
 config/*
 flownet/checkpoints/*
 models/clocknet/flownet/checkpoints/*
+models/profiler/*
 utils/*
 **/__init__.py
 **/.ipynb_checkpoints

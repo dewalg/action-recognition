@@ -21,7 +21,7 @@ CROP_SIZE = 299
 
 _DEBUG = False
 H_f = W_f = 17
-CKPT_LOC = '/nfs/action-recognition/models/clocknet/flownet/checkpoints/FlowNet2/flownet-2.ckpt-0'
+CKPT_LOC = '/nfs/action-recognition/models/clocknet/flownet/checkpoints/FlowNet2/clock_flow.ckpt-0'
 
 slim = tf.contrib.slim
 
@@ -79,7 +79,7 @@ class Net(object):
         return resize[h_crop:h_crop + CROP_SIZE, w_crop:w_crop + CROP_SIZE]
 
     def load_ckpt(self, sess, vars=None, checkpoint=CKPT_LOC):
-        saver = tf.train.Saver(var_list=vars)
+        saver = tf.train.Saver(vars)
         # with tf.Session() as sess:
         print("******* FLOW NET SESSION RESTORED ********")
         saver.restore(sess, checkpoint)
