@@ -138,6 +138,18 @@ class ClockStep:
         output = tf.add_n([wa * Ia, wb * Ib, wc * Ic, wd * Id])
         return tf.reshape(output, [out_height, out_width, channels])
 
+    def out(self, memory):
+        """
+        takes the final memory, transforms to a output vector which is softmax'ed
+        to return the final class probabilities
+        :param memory: 
+        :return: 
+        """
+        kernel = tf.get_variable("out_kernel", [1, 1, self.df, self.num_classes])
+        out = tf.nn.conv2d(memory, kernel, [1, 1, 1, 1], "SAME")
+        out = tf.layers.dense(out, self.num_classes, activation=tf.nn.relu, use_bias=True)
+        return tf.nn.softmax(out)
+
     def _build(self, inputs):
         if _DEBUG: print("DEBUG: ClockStep = INPUTS SHAPE = ", inputs.shape)
 
@@ -149,7 +161,11 @@ class ClockStep:
 
         initial_state = tf.zeros([self.mem_w, self.mem_h, self.df])
         memory = tf.scan(self.iterate, (flows, rgbs), initializer=initial_state)
-        return memory
+
+        with tf.variable_scope("output"):
+            out = self.out(memory)
+
+        return out
 
 if __name__ == '__main__':
     model = ClockStep(num_classes=10)
