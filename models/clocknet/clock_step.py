@@ -145,9 +145,12 @@ class ClockStep:
         :param memory: 
         :return: 
         """
-        kernel = tf.get_variable("out_kernel", [1, 1, self.df, self.num_classes])
+        memory = tf.expand_dims(memory, 0)
+        kernel = tf.get_variable("out_kernel", [1, 1, self.df, 1])
         out = tf.nn.conv2d(memory, kernel, [1, 1, 1, 1], "SAME")
-        out = tf.layers.dense(out, self.num_classes, activation=tf.nn.relu, use_bias=True)
+        # out = tf.Print(out, [tf.shape(out)], "POST-CONVOLVE shape: ")
+        if _DEBUG: print("POST-CONVOLVE TENSOR: ", out.shape)
+        out = tf.layers.dense(tf.reshape(out, [1, -1]), self.num_classes, activation=tf.nn.relu, use_bias=True)
         return tf.nn.softmax(out)
 
     def _build(self, inputs):
@@ -163,7 +166,9 @@ class ClockStep:
         memory = tf.scan(self.iterate, (flows, rgbs), initializer=initial_state)
 
         with tf.variable_scope("output"):
-            out = self.out(memory)
+            out = self.out(memory[-1])
+
+        out = tf.Print(out, [tf.shape(out)], "FINAL shape: ")
 
         return out
 
