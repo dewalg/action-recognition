@@ -27,7 +27,8 @@ class ClockStep:
             self.clock_flow = ClockFlow()
 
         with tf.variable_scope("clock_rgb", reuse=tf.AUTO_REUSE):
-            self.clock_rgb = ClockRgb(num_classes=10)
+            pass
+            # self.clock_rgb = ClockRgb(num_classes=10)
 
     def init_flow(self, tfsession, vars=None):
         self.clock_flow.load(tfsession, vars)
@@ -160,7 +161,8 @@ class ClockStep:
             flows = self.clock_flow._build(inputs[0])
 
         with tf.variable_scope('clock_rgb', reuse=tf.AUTO_REUSE):
-            rgbs = self.clock_rgb._build(inputs[0])
+            # rgbs = self.clock_rgb._build(inputs[0])
+            rgbs = tf.random_normal([64, 17, 17, 1088])
 
         initial_state = tf.zeros([self.mem_w, self.mem_h, self.df])
         memory = tf.scan(self.iterate, (flows, rgbs), initializer=initial_state)
