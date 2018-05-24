@@ -94,7 +94,7 @@ class Net(object):
         """
         channels = tf.unstack(input_a, axis=-1)
         input_a = tf.stack([channels[2], channels[1], channels[0]], axis=-1)
-        channels = tf.unstack(input_a, axis=-1)
+        channels = tf.unstack(input_b, axis=-1)
         input_b = tf.stack([channels[2], channels[1], channels[0]], axis=-1)
         input_a = tf.divide(input_a, 255.0)
         input_b = tf.divide(input_b, 255.0)

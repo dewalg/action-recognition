@@ -10,7 +10,7 @@ from .clock_flow import ClockFlow
 from .clock_rgb import ClockRgb
 
 # debug flag for debugging outputs
-_DEBUG = True
+_DEBUG = False
 
 H_f = W_f = 17
 D_f = 1088
@@ -168,7 +168,7 @@ class ClockStep:
         with tf.variable_scope("output"):
             out = self.out(memory[-1])
 
-        out = tf.Print(out, [tf.shape(out)], "FINAL shape: ")
+        # out = tf.Print(out, [tf.shape(out)], "FINAL shape: ")
 
         return out
 

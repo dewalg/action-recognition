@@ -7,7 +7,7 @@ Video Representations" by Vu et al.
 import tensorflow as tf
 from .resnet import inception_resnet_v2_keras
 
-_DEBUG = True
+_DEBUG = False
 
 H_f = W_f = 17
 D_f = 1088
@@ -32,7 +32,7 @@ class ClockRgb:
     def call_batch(self, inputs):
         # inputs is a dx299x299x3 tensor
         # should return a dx17x17x1088 tensor
-        print(inputs)
+        # print(inputs)
         return self.model(inputs)
 
     def _build(self, inputs):

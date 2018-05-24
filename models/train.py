@@ -1,11 +1,11 @@
 import sys
 import os
 import time
-from .clocknet.clock_step import ClockStep
-import tensorflow as tf
-from .pipeline import Pipeline
-from configparser import ConfigParser, ExtendedInterpolation
 from comet_ml import Experiment
+from clocknet.clock_step import ClockStep
+import tensorflow as tf
+from pipeline import Pipeline
+from configparser import ConfigParser, ExtendedInterpolation
 #
 config = ConfigParser(interpolation=ExtendedInterpolation())
 config.read('../config/config.ini')
@@ -40,8 +40,9 @@ SHUFFLE_SIZE = config['iter'].getint('shuffle_buffer')
 
 # build the model
 def inference(inputs):
+    print("INPUTS SHAPE: ", inputs.shape)
     with tf.variable_scope('base'):
-        model = ClockStep(num_classes=10)
+        model = ClockStep(num_classes=NUM_CLASSES)
         logits = model._build(inputs)
     return logits
 

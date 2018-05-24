@@ -5,7 +5,7 @@ import sonnet as snt
 from .flownet.src.flownet2 import flownet2
 
 # debug flag for debugging outputs
-_DEBUG = True
+_DEBUG = False
 
 H_f = W_f = 17
 D_f = 2
@@ -18,7 +18,7 @@ class ClockFlow:
         self.df = D_f
         # load FlowNet checkpoint.
         self.net = flownet2.FlowNet2()
-        self.prev_frame = tf.multiply(tf.ones([399, 399, 3]), 255.0)
+        self.prev_frame = tf.multiply(tf.ones([299, 299, 3]), 255.0)
 
     def load(self, tfsession, vars=None):
         self.net.load_ckpt(tfsession, vars)
@@ -31,7 +31,7 @@ class ClockFlow:
         return features
 
     def _build(self, inputs):
-        self.prev_frame = inputs[0][0]
+        self.prev_frame = inputs[0]
         if _DEBUG: print("CLOCK_FLOW debug: inputs shape = ", inputs.shape)
         initial_state = tf.zeros([self.mem_w, self.mem_h, self.df])
         memory = tf.scan(self.iterate, inputs, initializer=initial_state)
