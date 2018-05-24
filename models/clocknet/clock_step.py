@@ -17,7 +17,7 @@ D_f = 1088
 
 
 class ClockStep:
-    def __init__(self, num_classes, name='clockstep'):
+    def __init__(self, num_classes):
         self.num_classes = num_classes
         self.mem_h = H_f
         self.mem_w = W_f
@@ -157,7 +157,7 @@ class ClockStep:
         if _DEBUG: print("DEBUG: ClockStep = INPUTS SHAPE = ", inputs.shape)
 
         with tf.variable_scope('clock_flow', reuse=tf.AUTO_REUSE):
-            flows = self.clock_flow._build(inputs)
+            flows = self.clock_flow._build(inputs[0])
 
         with tf.variable_scope('clock_rgb', reuse=tf.AUTO_REUSE):
             rgbs = self.clock_rgb._build(inputs[0])

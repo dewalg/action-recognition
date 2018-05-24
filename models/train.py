@@ -1,12 +1,12 @@
 import sys
 import os
 import time
-from .clocknet.clocknet import ClockNet
+from .clocknet.clock_step import ClockStep
 import tensorflow as tf
 from .pipeline import Pipeline
 from configparser import ConfigParser, ExtendedInterpolation
-# from comet_ml import Experiment
-
+from comet_ml import Experiment
+#
 config = ConfigParser(interpolation=ExtendedInterpolation())
 config.read('../config/config.ini')
 
@@ -39,25 +39,11 @@ DISPLAY_ITER = config['iter'].getint('display_iter')
 SHUFFLE_SIZE = config['iter'].getint('shuffle_buffer')
 
 # build the model
-def inference(rgb_inputs):
-    with tf.variable_scope('RGB'):
-        model = ClockNet()
-        # rgb_model = i3d.InceptionI3d(
-        #     NUM_CLASSES, spatial_squeeze=True, final_endpoint='Logits')
-        # rgb_logits, _ = rgb_model(rgb_inputs, is_training=True, dropout_keep_prob=DROPOUT_KEEP_PROB)
-    return rgb_logits
-
-
-# restore the pretrained weights, except for the last layer
-def get_pretrained_save_state():
-    rgb_variable_map = {}
-    for variable in tf.global_variables():
-        if variable.name.split('/')[0] == 'RGB':
-            if 'Logits' in variable.name:  # skip the last layer
-                continue
-            rgb_variable_map[variable.name.replace(':0', '')] = variable
-    rgb_saver = tf.train.Saver(var_list=rgb_variable_map, reshape=True)
-    return rgb_saver
+def inference(inputs):
+    with tf.variable_scope('base'):
+        model = ClockStep(num_classes=10)
+        logits = model._build(inputs)
+    return logits
 
 
 def tower_inference(rgb_inputs, labels):
@@ -68,7 +54,6 @@ def tower_inference(rgb_inputs, labels):
 
 
 def average_gradients(tower_grads):
-
     average_grads = []
     for grad_and_vars in zip(*tower_grads):
         # Note that each grad_and_vars looks like the following:
@@ -109,8 +94,8 @@ if __name__ == '__main__':
                     }
 
     """  this is user-sensitive API key. Change it to see logs in your comet-ml """
-    # experiment = Experiment(api_key="5t7sqKGYmr76wqaEHqwN0Sqcg", project_name="lsar")
-    # experiment.log_multiple_params(hyper_params)
+    experiment = Experiment(api_key="5t7sqKGYmr76wqaEHqwN0Sqcg", project_name="lsar")
+    experiment.log_multiple_params(hyper_params)
     """ =================================================================== """
     train_pipeline = Pipeline(TRAIN_DATA, CLS_DICT_FP)
     val_pipeline = Pipeline(VAL_DATA, CLS_DICT_FP)
@@ -118,7 +103,8 @@ if __name__ == '__main__':
 
     is_training = tf.placeholder(tf.bool)
 
-    opt = tf.train.GradientDescentOptimizer(LR)
+    # opt = tf.train.GradientDescentOptimizer(LR)
+    opt = tf.train.AdamOptimizer(learning_rate=0.01)
 
     tower_grads = []
     tower_losses = []
@@ -134,30 +120,31 @@ if __name__ == '__main__':
 
     with tf.variable_scope(tf.get_variable_scope()):
         for i in range(NUM_GPUS):
-            with tf.name_scope('tower_%d' % i):
+            with tf.name_scope('tower_%d' % i) as scope:
                 rgbs, labels = tf.cond(is_training, lambda: train_iterator.get_next(),
-                                              lambda: val_iterator.get_next())
+                                       lambda: val_iterator.get_next())
                 with tf.device('/gpu:%d' % i):
                     loss, logits = tower_inference(rgbs, labels)
+                    summaries = tf.get_collection(tf.GraphKeys.SUMMARIES, scope)
                     tf.get_variable_scope().reuse_variables()
                     grads = opt.compute_gradients(loss)
                     tower_grads.append(grads)
                     tower_losses.append(loss)
                     tower_logits_labels.append((logits, labels))
 
-        # rgbs, labels = tf.cond(is_training, lambda: train_queue.make_one_shot_iterator().get_next(),
-        #                               lambda: val_queue.make_one_shot_iterator().get_next())
-        # loss, logits = tower_inference(rgbs, labels)
-        # tf.get_variable_scope().reuse_variables()
-        # grads = opt.compute_gradients(loss)
-        # tower_grads.append(grads)
-        # tower_losses.append(loss)
-        # tower_logits_labels.append((logits, labels))
-
     true_count_op = get_true_counts(tower_logits_labels)
     avg_loss = tf.reduce_mean(tower_losses)
+
     grads = average_gradients(tower_grads)
+    for grad, var in grads:
+        if grad is not None:
+            summaries.append(tf.summary.histogram(var.op.name + '/gradients', grad))
+
     train_op = opt.apply_gradients(grads)
+    for var in tf.trainable_variables():
+        summaries.append(tf.summary.histogram(var.op.name, var))
+
+    summary_op = tf.summary.merge(summaries)
 
     # saver for fine tuning
     if not os.path.exists(TMPDIR):
@@ -169,7 +156,7 @@ if __name__ == '__main__':
 
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
-        # experiment.set_model_graph(sess.graph)
+        experiment.set_model_graph(sess.graph)
 
         # rgb_def_state = get_pretrained_save_state()
         ckpt = tf.train.get_checkpoint_state(ckpt_path)
@@ -199,15 +186,18 @@ if __name__ == '__main__':
                     _, loss_val = sess.run([train_op, avg_loss], {is_training: True})
 
                     # logging into comet-ml
-                    # experiment.log_metric("train_loss", loss_val, step=it)
-                    # experiment.set_step(it)
+                    experiment.log_metric("train_loss", loss_val, step=it)
+                    experiment.set_step(it)
 
                     if it % DISPLAY_ITER == 0:
                         tf.logging.info('step %d, loss = %f', it, loss_val)
                         loss_summ = tf.Summary(value=[
                             tf.Summary.Value(tag="train_loss", simple_value=loss_val)
                         ])
+
                         summary_writer.add_summary(loss_summ, it)
+                        summary_str = sess.run(summary_op)
+                        summary_writer.add_summary(summary_str, it)
 
                     if it % SAVE_ITER == 0 and it > 0:
                         saver.save(sess, os.path.join(ckpt_path, 'model_ckpt'), it)
@@ -246,19 +236,6 @@ if __name__ == '__main__':
                         experiment.log_metric("val_loss", val_loss, step=it)
                         val_time = time.time() - val_start
                         saver.save(sess, os.path.join(ckpt_path, 'model_ckpt'), it)
-
-                    # if it % THROUGH_PUT_ITER == 0 and it > 0:
-                    #     duration = time.time() - last_time - val_time
-                    #     steps = it - last_step
-                    #     through_put = steps * NUM_GPUS * BATCH_SIZE / duration
-                    #     tf.logging.info('num examples/sec: %.2f', through_put)
-                    #     through_put_summ = tf.Summary(value=[
-                    #         tf.Summary.Value(tag="through_put", simple_value=through_put)
-                    #     ])
-                    #     summary_writer.add_summary(through_put_summ, it)
-                    #     last_time = time.time()
-                    #     last_step = it
-                    #     val_time = 0
 
                     it += 1
 
