@@ -155,8 +155,7 @@ if __name__ == '__main__':
     if not os.path.exists(ckpt_path):
         os.mkdir(ckpt_path)
 
-    config = tf.ConfigProto(allow_soft_placement=True)
-    with tf.Session(config=config) as sess:
+    with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
         # experiment.set_model_graph(sess.graph)
 
