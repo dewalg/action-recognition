@@ -1,7 +1,7 @@
 import sys
 import os
 import time
-from comet_ml import Experiment
+# from comet_ml import Experiment
 from clocknet.clock_step import ClockStep
 import tensorflow as tf
 from pipeline import Pipeline
@@ -95,8 +95,8 @@ if __name__ == '__main__':
                     }
 
     """  this is user-sensitive API key. Change it to see logs in your comet-ml """
-    experiment = Experiment(api_key="5t7sqKGYmr76wqaEHqwN0Sqcg", project_name="lsar")
-    experiment.log_multiple_params(hyper_params)
+    # experiment = Experiment(api_key="5t7sqKGYmr76wqaEHqwN0Sqcg", project_name="lsar")
+    # experiment.log_multiple_params(hyper_params)
     """ =================================================================== """
     train_pipeline = Pipeline(TRAIN_DATA, CLS_DICT_FP)
     val_pipeline = Pipeline(VAL_DATA, CLS_DICT_FP)
@@ -157,7 +157,7 @@ if __name__ == '__main__':
 
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
-        experiment.set_model_graph(sess.graph)
+        # experiment.set_model_graph(sess.graph)
 
         # rgb_def_state = get_pretrained_save_state()
         ckpt = tf.train.get_checkpoint_state(ckpt_path)
@@ -187,8 +187,8 @@ if __name__ == '__main__':
                     _, loss_val = sess.run([train_op, avg_loss], {is_training: True})
 
                     # logging into comet-ml
-                    experiment.log_metric("train_loss", loss_val, step=it)
-                    experiment.set_step(it)
+                    # experiment.log_metric("train_loss", loss_val, step=it)
+                    # experiment.set_step(it)
 
                     if it % DISPLAY_ITER == 0:
                         tf.logging.info('step %d, loss = %f', it, loss_val)
@@ -224,7 +224,7 @@ if __name__ == '__main__':
                         ])
                         summary_writer.add_summary(acc_summ, it)
                         # logging into comet-ml
-                        experiment.log_metric("val_acc", acc, step=it)
+                        # experiment.log_metric("val_acc", acc, step=it)
                         # add val loss to summary
                         val_loss = val_loss / int(NUM_VAL_VIDS / NUM_GPUS / BATCH_SIZE)
                         tf.logging.info('val loss: %f', val_loss)
@@ -234,7 +234,7 @@ if __name__ == '__main__':
                         summary_writer.add_summary(val_loss_summ, it)
 
                         # logging into comet-ml
-                        experiment.log_metric("val_loss", val_loss, step=it)
+                        # experiment.log_metric("val_loss", val_loss, step=it)
                         val_time = time.time() - val_start
                         saver.save(sess, os.path.join(ckpt_path, 'model_ckpt'), it)
 
