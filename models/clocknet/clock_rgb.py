@@ -35,7 +35,9 @@ class ClockRgb:
         # should return a dx17x17x1088 tensor
         # print(inputs)
         # return self.model(inputs)
-        return inception_resnet_v2_tf.inception_resnet_v2(inputs, final_endpoint='Mixed_6a')
+        rgb, _ = inception_resnet_v2_tf.inception_resnet_v2(inputs, final_endpoint='Mixed_6a')
+        print("RGB shape =", rgb.shape)
+        return rgb
 
     def _build(self, inputs):
         if _DEBUG: print("CLOCK_RGB debug: inputs shape = ", inputs.shape)
