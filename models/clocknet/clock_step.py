@@ -61,7 +61,7 @@ class ClockStep:
     def _repeat(self, x, n_repeats):
         rep = tf.transpose(
             tf.expand_dims(tf.ones(shape=tf.stack([n_repeats, ])), 1), [1, 0])
-        rep = tf.cast(rep, 'int32')
+        # rep = tf.cast(rep, 'int32')
         x = tf.matmul(tf.reshape(x, (-1, 1)), rep)
         return tf.reshape(x, [-1])
 
