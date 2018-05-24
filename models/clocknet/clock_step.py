@@ -64,6 +64,7 @@ class ClockStep:
         # rep = tf.cast(rep, 'int32')
         x = tf.cast(x, 'float32')
         x = tf.matmul(tf.reshape(x, (-1, 1)), rep)
+        x = tf.cast(x, 'int32')
         return tf.reshape(x, [-1])
 
     def bilinear_sampler(self, im, x, y):
