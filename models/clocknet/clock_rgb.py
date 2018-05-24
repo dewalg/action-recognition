@@ -6,6 +6,7 @@ Video Representations" by Vu et al.
 # using python 3
 import tensorflow as tf
 from .resnet import inception_resnet_v2_keras
+from .resnet import inception_resnet_v2_tf
 
 _DEBUG = False
 
@@ -19,21 +20,22 @@ class ClockRgb:
         self.mem_w = W_f
         self.df = D_f
         self.num_classes = num_classes
-        self.model = inception_resnet_v2_keras.InceptionResNetV2()
+        # self.model = inception_resnet_v2_keras.InceptionResNetV2()
 
-    def call(self, inputs):
-        # inputs is a 299x299x3 tensor
-        # should return a 17x17x1088 tensor
-        inputs = tf.reshape(inputs, [1, 299, 299, 3])
-        out = self.model(inputs)
-        out = tf.reshape(out, [17, 17, 1088])
-        return out
+    # def call(self, inputs):
+    #     # inputs is a 299x299x3 tensor
+    #     # should return a 17x17x1088 tensor
+    #     inputs = tf.reshape(inputs, [1, 299, 299, 3])
+    #     out = self.model(inputs)
+    #     out = tf.reshape(out, [17, 17, 1088])
+    #     return out
 
     def call_batch(self, inputs):
         # inputs is a dx299x299x3 tensor
         # should return a dx17x17x1088 tensor
         # print(inputs)
-        return self.model(inputs)
+        # return self.model(inputs)
+        return inception_resnet_v2_tf.inception_resnet_v2(inputs, final_endpoint='Mixed_6a')
 
     def _build(self, inputs):
         if _DEBUG: print("CLOCK_RGB debug: inputs shape = ", inputs.shape)

@@ -26,7 +26,7 @@ import tensorflow as tf
 
 slim = tf.contrib.slim
 
-DEBUG_ = True
+DEBUG_ = False
 
 
 def block35(net, scale=1.0, activation_fn=tf.nn.relu, scope=None, reuse=None):
