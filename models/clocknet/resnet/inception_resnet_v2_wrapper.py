@@ -23,8 +23,8 @@ class InceptionResNetV2():
 
                 self.outputs = {l.name: l.output for l in self.irv2.layers}
 
-            self.irv2_weights = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope='IRV2/model')
-            self.irv2_weights.extend(tf.get_collection(tf.GraphKeys.VARIABLES, scope='IRV2/model'))
+            self.irv2_weights = tf.get_collection(tf.GraphKeys.VARIABLES, scope='IRV2/model')
+            # self.irv2_weights.extend(tf.get_collection(tf.GraphKeys.VARIABLES, scope='IRV2/model'))
             print(self.irv2_weights)
 
             with tempfile.NamedTemporaryFile() as f:
