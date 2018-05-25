@@ -28,24 +28,23 @@ rgb, labels = iterator.get_next()
 # model = ClockStep(num_classes=10)
 # mem = model._build(rgb)
 
-all_vars = tf.all_variables()
-model_vars = [k for k in all_vars if k.name.startswith("clock_flow")]
-
-v_flow = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope='clock_flow')
-print("LEN OF VARS")
-print(len(v_flow))
-if len(v_flow) > 0:
-    print(v_flow[0])
-    print(v_flow[1])
-    print(v_flow[2])
-
-v_dict = {v.op.name: v for v in v_flow}
+# v_flow = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope='clock_flow')
+# print("LEN OF VARS")
+# print(len(v_flow))
+# if len(v_flow) > 0:
+#     print(v_flow[0])
+#     print(v_flow[1])
+#     print(v_flow[2])
+#
+# v_dict = {v.op.name: v for v in v_flow}
 
 with tf.Session() as sess:
     sess.run(tf.global_variables_initializer())
     sess.run(init_op)
     model = ClockStep(num_classes=10)
     mem = model._build(rgb)
+    all_vars = tf.all_variables()
+    model_vars = [k for k in all_vars if k.name.startswith("clock_flow")]
     model.init_flow(model_vars)
     model.init_rgb()
 
