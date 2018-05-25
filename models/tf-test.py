@@ -42,9 +42,11 @@ if len(v_flow) > 0:
 v_dict = {v.op.name: v for v in v_flow}
 
 with tf.Session() as sess:
-    model.init_flow(sess, model_vars)
-    sess.run(init_op)
     sess.run(tf.global_variables_initializer())
+    model.init_flow(model_vars)
+    model.init_rgb()
+    sess.run(init_op)
+
     writer = tf.summary.FileWriter("./profiler", sess.graph)
 
     run_options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)

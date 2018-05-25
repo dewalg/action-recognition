@@ -20,8 +20,9 @@ class ClockFlow:
         self.net = flownet2.FlowNet2()
         self.prev_frame = tf.multiply(tf.ones([299, 299, 3]), 255.0)
 
-    def load(self, tfsession, vars=None):
-        self.net.load_ckpt(tfsession, vars)
+    def load(self, vars=None):
+        with tf.get_default_session() as sess:
+            self.net.load_ckpt(sess, vars)
 
     def iterate(self, memory, frame):
         if _DEBUG: print("CLOCK_FLOW debug: frame shape = ", frame.shape)
