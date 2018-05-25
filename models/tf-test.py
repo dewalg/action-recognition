@@ -43,11 +43,11 @@ v_dict = {v.op.name: v for v in v_flow}
 
 with tf.Session() as sess:
     sess.run(tf.global_variables_initializer())
+    sess.run(init_op)
     model = ClockStep(num_classes=10)
     mem = model._build(rgb)
     model.init_flow(model_vars)
     model.init_rgb()
-    sess.run(init_op)
 
     writer = tf.summary.FileWriter("./profiler", sess.graph)
 
