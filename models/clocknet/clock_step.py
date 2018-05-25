@@ -5,9 +5,11 @@ Video Representations" by Vu et al.
 # using python 3
 
 import time
+import numpy as np
 import tensorflow as tf
 from .clock_flow import ClockFlow
 from .clock_rgb import ClockRgb
+from .resnet import inception_resnet_v2_wrapper
 
 # debug flag for debugging outputs
 _DEBUG = False
@@ -22,18 +24,18 @@ class ClockStep:
         self.mem_h = H_f
         self.mem_w = W_f
         self.df = D_f
-
+        self.input_tensor = tf.placeholder(tf.float32, (64, 299, 299, 3), name='rgb_image')
         with tf.variable_scope("clock_flow", reuse=tf.AUTO_REUSE):
             self.clock_flow = ClockFlow()
 
         with tf.variable_scope("clock_rgb", reuse=tf.AUTO_REUSE):
-            self.clock_rgb = ClockRgb(num_classes=10)
+            self.clock_rgb = inception_resnet_v2_wrapper.InceptionResNetV2(input_tensor=self.input_tensor)
 
     def init_flow(self, vars=None):
         self.clock_flow.load(vars)
 
     def init_rgb(self):
-        self.clock_rgb.load_ckpt()
+        self.clock_rgb.load_weights()
 
     def compute_mem(self, memory, flow):
         x_flow = tf.slice(flow, [0, 0, 0], [-1, -1, 1])
@@ -165,7 +167,11 @@ class ClockStep:
             flows = self.clock_flow._build(inputs[0])
 
         with tf.variable_scope('clock_rgb', reuse=tf.AUTO_REUSE):
-            rgbs = self.clock_rgb._build(inputs[0])
+            sess = tf.get_default_session()
+            inputs_rgb = sess.run(inputs)
+            inputs_rgb = np.array(inputs_rgb[0]).reshape((64, 299, 299, 3)).astype(np.float32)
+            rgbs = tf.identity(self.clock_rgb['mixed_6a'], name='rgb_output')
+            rgbs = sess.run(rgbs, feed_dict={self.input_tensor: inputs_rgb})
 
         initial_state = tf.zeros([self.mem_w, self.mem_h, self.df])
         memory = tf.scan(self.iterate, (flows, rgbs), initializer=initial_state)

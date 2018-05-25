@@ -31,8 +31,9 @@ class InceptionResNetV2:
 
         self.model_weights_tensors = set(self.irv2_weights)
 
-    def load_weights(self, tfsession):
-        tf.train.Saver(self.irv2_weights).restore(tfsession, self.tf_checkpoint_path)
+    def load_weights(self):
+        sess = tf.get_default_session()
+        tf.train.Saver(self.irv2_weights).restore(self.tf_checkpoint_path)
 
     def __getitem__(self, key):
         return self.outputs[key]

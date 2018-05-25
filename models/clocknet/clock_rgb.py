@@ -24,8 +24,7 @@ class ClockRgb:
         self.model = inception_resnet_v2_wrapper.InceptionResNetV2(input_tensor=self.input_tensor)
 
     def load_ckpt(self):
-        sess = tf.get_default_session()
-        self.model.load_weights(sess)
+        self.model.load_weights()
 
     # def call(self, inputs):
     #     # inputs is a 299x299x3 tensor
