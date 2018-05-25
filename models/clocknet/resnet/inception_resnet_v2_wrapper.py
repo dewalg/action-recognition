@@ -33,7 +33,7 @@ class InceptionResNetV2:
 
     def load_weights(self):
         sess = tf.get_default_session()
-        tf.train.Saver(self.irv2_weights).restore(self.tf_checkpoint_path)
+        tf.train.Saver(self.irv2_weights).restore(sess, self.tf_checkpoint_path)
 
     def __getitem__(self, key):
         return self.outputs[key]
@@ -45,6 +45,6 @@ if __name__ == '__main__':
         my_img = tf.random_uniform([64, 299, 299, 3], maxval=255.0)
         irv2 = InceptionResNetV2(input_tensor=my_img)
         output = tf.identity(irv2['mixed_6a'], name='my_output')
-        irv2.load_weights(sess)
+        irv2.load_weights()
         output_val = sess.run(output)
         print(output_val.shape, output_val.mean())
