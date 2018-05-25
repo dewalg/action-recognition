@@ -24,8 +24,8 @@ class ClockRgb:
         self.model = inception_resnet_v2_wrapper.InceptionResNetV2(input_tensor=self.input_tensor)
 
     def load_ckpt(self):
-        with tf.get_default_session() as sess:
-            self.model.load_weights(sess)
+        sess = tf.get_default_session()
+        self.model.load_weights(sess)
 
     # def call(self, inputs):
     #     # inputs is a 299x299x3 tensor
@@ -45,9 +45,9 @@ class ClockRgb:
         if _DEBUG: print("CLOCK_RGB debug: inputs shape = ", inputs.shape)
         out = self.call_batch()
         if _DEBUG: print("CLOCK_RGB debug: outputs shape = ", out.shape)
-        with tf.get_default_session() as sess:
-            fd = {self.input_tensor: inputs}
-            sess.run(out, fd)
+        sess = tf.get_default_session()
+        fd = {self.input_tensor: inputs}
+        sess.run(out, fd)
         return out
 
 
