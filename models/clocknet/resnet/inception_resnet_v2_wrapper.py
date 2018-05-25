@@ -24,8 +24,6 @@ class InceptionResNetV2():
                 self.outputs = {l.name: l.output for l in self.irv2.layers}
 
             self.irv2_weights = tf.get_collection(tf.GraphKeys.VARIABLES, scope='IRV2/model')
-            # self.irv2_weights.extend(tf.get_collection(tf.GraphKeys.VARIABLES, scope='IRV2/model'))
-            print(self.irv2_weights)
 
             with tempfile.NamedTemporaryFile() as f:
                 self.tf_checkpoint_path = tf.train.Saver(self.irv2_weights).save(sess, f.name)
@@ -42,7 +40,7 @@ class InceptionResNetV2():
 
 if __name__ == '__main__':
     tf.reset_default_graph()
-    my_img = tf.random_uniform([1, 299, 299, 3], maxval=255.0)
+    my_img = tf.random_uniform([64, 299, 299, 3], maxval=255.0)
     irv2 = InceptionResNetV2(input_tensor=my_img)
     output = tf.identity(irv2['mixed_6a'], name='my_output')
     with tf.Session() as sess:
