@@ -9,24 +9,25 @@ class InceptionResNetV2:
     Also takes care of preprocessing. Input should be a regular RGB image (0-255)
     """
 
-    def __init__(self, sess, input_tensor=None):
-        self._build_graph(input_tensor, sess)
+    def __init__(self, input_tensor=None):
+        self._build_graph(input_tensor)
 
-    def _build_graph(self, input_tensor, sess):
-        with tf.variable_scope('IRV2'):
-            with tf.name_scope('inputs'):
-                self.input_tensor = input_tensor
+    def _build_graph(self, input_tensor):
+        with tf.get_default_session() as sess:
+            with tf.variable_scope('IRV2'):
+                with tf.name_scope('inputs'):
+                    self.input_tensor = input_tensor
 
-            with tf.variable_scope('model'):
-                self.irv2 = tf.keras.applications.InceptionResNetV2(weights='imagenet', include_top=False,
-                                                                    input_tensor=self.input_tensor, input_shape=[299, 299, 3])
+                with tf.variable_scope('model'):
+                    self.irv2 = tf.keras.applications.InceptionResNetV2(weights='imagenet', include_top=False,
+                                                                        input_tensor=self.input_tensor, input_shape=[299, 299, 3])
 
-            self.outputs = {l.name: l.output for l in self.irv2.layers}
+                self.outputs = {l.name: l.output for l in self.irv2.layers}
 
-        self.irv2_weights = tf.get_collection(tf.GraphKeys.VARIABLES, scope='IRV2/model')
+            self.irv2_weights = tf.get_collection(tf.GraphKeys.VARIABLES, scope='IRV2/model')
 
-        with tempfile.NamedTemporaryFile() as f:
-            self.tf_checkpoint_path = tf.train.Saver(self.irv2_weights).save(sess, f.name)
+            with tempfile.NamedTemporaryFile() as f:
+                self.tf_checkpoint_path = tf.train.Saver(self.irv2_weights).save(sess, f.name)
 
         self.model_weights_tensors = set(self.irv2_weights)
 

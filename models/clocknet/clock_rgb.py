@@ -21,7 +21,7 @@ class ClockRgb:
         self.num_classes = num_classes
         self.tfsession = sess
         self.input_tensor = tf.placeholder(tf.float32, (64, 299, 299, 3), name='rgb_image')
-        self.model = inception_resnet_v2_wrapper.InceptionResNetV2(self.tfsession, input_tensor=self.input_tensor)
+        self.model = inception_resnet_v2_wrapper.InceptionResNetV2(input_tensor=self.input_tensor)
 
     def load_ckpt(self):
         with tf.get_default_session() as sess:
