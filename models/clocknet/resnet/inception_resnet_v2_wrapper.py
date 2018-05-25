@@ -13,21 +13,21 @@ class InceptionResNetV2:
         self._build_graph(input_tensor)
 
     def _build_graph(self, input_tensor):
-        with tf.get_default_session() as sess:
-            with tf.variable_scope('IRV2'):
-                with tf.name_scope('inputs'):
-                    self.input_tensor = input_tensor
+        sess = tf.get_default_session()
+        with tf.variable_scope('IRV2'):
+            with tf.name_scope('inputs'):
+                self.input_tensor = input_tensor
 
-                with tf.variable_scope('model'):
-                    self.irv2 = tf.keras.applications.InceptionResNetV2(weights='imagenet', include_top=False,
-                                                                        input_tensor=self.input_tensor, input_shape=[299, 299, 3])
+            with tf.variable_scope('model'):
+                self.irv2 = tf.keras.applications.InceptionResNetV2(weights='imagenet', include_top=False,
+                                                                    input_tensor=self.input_tensor, input_shape=[299, 299, 3])
 
-                self.outputs = {l.name: l.output for l in self.irv2.layers}
+            self.outputs = {l.name: l.output for l in self.irv2.layers}
 
-            self.irv2_weights = tf.get_collection(tf.GraphKeys.VARIABLES, scope='IRV2/model')
+        self.irv2_weights = tf.get_collection(tf.GraphKeys.VARIABLES, scope='IRV2/model')
 
-            with tempfile.NamedTemporaryFile() as f:
-                self.tf_checkpoint_path = tf.train.Saver(self.irv2_weights).save(sess, f.name)
+        with tempfile.NamedTemporaryFile() as f:
+            self.tf_checkpoint_path = tf.train.Saver(self.irv2_weights).save(sess, f.name)
 
         self.model_weights_tensors = set(self.irv2_weights)
 
@@ -41,7 +41,6 @@ class InceptionResNetV2:
 if __name__ == '__main__':
 
     with tf.Session() as sess:
-        sess.as_default()
         my_img = tf.random_uniform([64, 299, 299, 3], maxval=255.0)
         irv2 = InceptionResNetV2(input_tensor=my_img)
         output = tf.identity(irv2['mixed_6a'], name='my_output')
