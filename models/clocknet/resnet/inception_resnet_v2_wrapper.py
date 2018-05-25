@@ -41,7 +41,7 @@ class InceptionResNetV2():
 
 if __name__ == '__main__':
     tf.reset_default_graph()
-    my_img = tf.random_uniform([299, 299, 3], maxval=255.0)
+    my_img = tf.random_uniform([1, 299, 299, 3], maxval=255.0)
     irv2 = InceptionResNetV2(input_tensor=my_img)
     output = tf.identity(irv2['mixed_6a'], name='my_output')
     with tf.Session() as sess:
