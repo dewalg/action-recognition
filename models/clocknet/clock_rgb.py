@@ -14,12 +14,11 @@ D_f = 1088
 
 
 class ClockRgb:
-    def __init__(self, sess, num_classes = 10):
+    def __init__(self, num_classes = 10):
         self.mem_h = H_f
         self.mem_w = W_f
         self.df = D_f
         self.num_classes = num_classes
-        self.tfsession = sess
         self.input_tensor = tf.placeholder(tf.float32, (64, 299, 299, 3), name='rgb_image')
         self.model = inception_resnet_v2_wrapper.InceptionResNetV2(input_tensor=self.input_tensor)
 
