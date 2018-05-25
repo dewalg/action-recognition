@@ -45,7 +45,7 @@ class ClockRgb:
         out = self.call_batch()
         if _DEBUG: print("CLOCK_RGB debug: outputs shape = ", out.shape)
         sess = tf.get_default_session()
-        fd = {self.input_tensor: sess.run(inputs)}
+        fd = {'clock_rgb/rgb_image': sess.run(inputs)}
         sess.run(out, fd)
         return out
 
