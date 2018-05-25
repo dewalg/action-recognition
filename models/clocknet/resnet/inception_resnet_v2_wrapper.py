@@ -19,7 +19,7 @@ class InceptionResNetV2():
 
                 with tf.variable_scope('model'):
                     self.irv2 = tf.keras.applications.InceptionResNetV2(weights='imagenet', include_top=False,
-                                                                        input_tensor=self.input_tensor, input_shape=)
+                                                                        input_tensor=self.input_tensor, input_shape=[299, 299, 3])
 
                 self.outputs = {l.name: l.output for l in self.irv2.layers}
 
@@ -41,7 +41,7 @@ class InceptionResNetV2():
 
 if __name__ == '__main__':
     tf.reset_default_graph()
-    my_img = tf.random_uniform([1, 299, 299, 3], maxval=255.0)
+    my_img = tf.random_uniform([299, 299, 3], maxval=255.0)
     irv2 = InceptionResNetV2(input_tensor=my_img)
     output = tf.identity(irv2['mixed_6a'], name='my_output')
     with tf.Session() as sess:
