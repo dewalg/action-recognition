@@ -157,7 +157,7 @@ class ClockStep:
         out = tf.nn.conv2d(memory, kernel, [1, 1, 1, 1], "SAME")
         # out = tf.Print(out, [tf.shape(out)], "POST-CONVOLVE shape: ")
         if _DEBUG: print("POST-CONVOLVE TENSOR: ", out.shape)
-        out = tf.layers.dense(tf.reshape(out, [1, -1]), self.num_classes, activation=tf.nn.relu, use_bias=True)
+        out = tf.layers.dense(tf.reshape(out, [1, -1]), self.num_classes, activation=tf.nn.relu)
         return tf.nn.softmax(out)
 
     def _build(self, inputs):
@@ -181,7 +181,7 @@ class ClockStep:
 
         # out = tf.Print(out, [tf.shape(out)], "FINAL shape: ")
 
-        return memory
+        return out
 
 if __name__ == '__main__':
     model = ClockStep(num_classes=10)
