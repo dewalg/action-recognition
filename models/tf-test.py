@@ -40,6 +40,7 @@ rgb, labels = iterator.get_next()
 
 with tf.Session() as sess:
     sess.run(tf.global_variables_initializer())
+    sess.run(tf.local_variables_initializer())
     sess.run(init_op)
     model = ClockStep(num_classes=10)
     mem = model._build(rgb)
