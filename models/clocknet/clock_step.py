@@ -176,7 +176,7 @@ class ClockStep:
         initial_state = tf.zeros([self.mem_w, self.mem_h, self.df])
         memory = tf.scan(self.iterate, (flows, rgbs), initializer=initial_state)
 
-        with tf.variable_scope("output"):
+        with tf.variable_scope("output", reuse=tf.AUTO_REUSE):
             out = self.out(memory[-1])
 
         # out = tf.Print(out, [tf.shape(out)], "FINAL shape: ")
