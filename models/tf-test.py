@@ -39,10 +39,10 @@ rgb, labels = iterator.get_next()
 # v_dict = {v.op.name: v for v in v_flow}
 
 with tf.Session() as sess:
-    sess.run(tf.global_variables_initializer())
     sess.run(init_op)
     model = ClockStep(num_classes=10)
     mem = model._build(rgb)
+    sess.run(tf.global_variables_initializer())
     all_vars = tf.all_variables()
     model_vars = [k for k in all_vars if k.name.startswith("clock_flow")]
     model.init_flow(model_vars)
