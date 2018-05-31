@@ -159,7 +159,6 @@ if __name__ == '__main__':
         os.mkdir(ckpt_path)
 
     with tf.Session() as sess:
-        model.init_core()
         sess.run(train_init_op)
         sess.run(val_init_op)
         sess.run(tf.global_variables_initializer())
