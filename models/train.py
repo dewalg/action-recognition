@@ -120,49 +120,48 @@ if __name__ == '__main__':
     val_iterator = tf.data.Iterator.from_structure(val_queue.output_types, val_queue.output_shapes)
     val_init_op = val_iterator.make_initializer(val_queue)
 
+    model = ClockStep(num_classes=NUM_CLASSES)
+
+    with tf.variable_scope(tf.get_variable_scope()):
+        for i in range(NUM_GPUS):
+            with tf.name_scope('tower_%d' % i) as scope:
+                rgbs, labels = tf.cond(is_training, lambda: train_iterator.get_next(),
+                                       lambda: val_iterator.get_next())
+                with tf.device('/gpu:%d' % i):
+                    loss, logits = tower_inference(model, rgbs, labels)
+                    summaries = tf.get_collection(tf.GraphKeys.SUMMARIES, scope)
+                    tf.get_variable_scope().reuse_variables()
+                    grads = opt.compute_gradients(loss)
+                    tower_grads.append(grads)
+                    tower_losses.append(loss)
+                    tower_logits_labels.append((logits, labels))
+
+    true_count_op = get_true_counts(tower_logits_labels)
+    avg_loss = tf.reduce_mean(tower_losses)
+
+    grads = average_gradients(tower_grads)
+    for grad, var in grads:
+        if grad is not None:
+            summaries.append(tf.summary.histogram(var.op.name + '/gradients', grad))
+
+    train_op = opt.apply_gradients(grads)
+    for var in tf.trainable_variables():
+        summaries.append(tf.summary.histogram(var.op.name, var))
+
+    summary_op = tf.summary.merge(summaries)
+
+    # saver for fine tuning
+    if not os.path.exists(TMPDIR):
+        os.mkdir(TMPDIR)
+    saver = tf.train.Saver(max_to_keep=3)
+    ckpt_path = os.path.join(TMPDIR, 'ckpt')
+    if not os.path.exists(ckpt_path):
+        os.mkdir(ckpt_path)
+
     with tf.Session() as sess:
-        model = ClockStep(num_classes=NUM_CLASSES)
-
-        with tf.variable_scope(tf.get_variable_scope()):
-            for i in range(NUM_GPUS):
-                with tf.name_scope('tower_%d' % i) as scope:
-                    rgbs, labels = tf.cond(is_training, lambda: train_iterator.get_next(),
-                                           lambda: val_iterator.get_next())
-                    with tf.device('/gpu:%d' % i):
-                        loss, logits = tower_inference(model, rgbs, labels)
-                        summaries = tf.get_collection(tf.GraphKeys.SUMMARIES, scope)
-                        tf.get_variable_scope().reuse_variables()
-                        grads = opt.compute_gradients(loss)
-                        tower_grads.append(grads)
-                        tower_losses.append(loss)
-                        tower_logits_labels.append((logits, labels))
-
-        true_count_op = get_true_counts(tower_logits_labels)
-        avg_loss = tf.reduce_mean(tower_losses)
-
-        grads = average_gradients(tower_grads)
-        for grad, var in grads:
-            if grad is not None:
-                summaries.append(tf.summary.histogram(var.op.name + '/gradients', grad))
-
-        train_op = opt.apply_gradients(grads)
-        for var in tf.trainable_variables():
-            summaries.append(tf.summary.histogram(var.op.name, var))
-
-        summary_op = tf.summary.merge(summaries)
-
-        # saver for fine tuning
-        if not os.path.exists(TMPDIR):
-            os.mkdir(TMPDIR)
-        saver = tf.train.Saver(max_to_keep=3)
-        ckpt_path = os.path.join(TMPDIR, 'ckpt')
-        if not os.path.exists(ckpt_path):
-            os.mkdir(ckpt_path)
-
-        sess = tf.get_default_session()
+        model.init_core()
         sess.run(train_init_op)
         sess.run(val_init_op)
-        model = ClockStep(num_classes=NUM_CLASSES)
         sess.run(tf.global_variables_initializer())
         all_vars = tf.all_variables()
         model_vars = [k for k in all_vars if k.name.startswith("clock_flow")]
