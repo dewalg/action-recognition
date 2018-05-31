@@ -38,17 +38,18 @@ VAL_ITER = config['iter'].getint('val_iter')
 DISPLAY_ITER = config['iter'].getint('display_iter')
 SHUFFLE_SIZE = config['iter'].getint('shuffle_buffer')
 
+
 # build the model
-def inference(inputs):
+def inference(model, inputs):
     print("INPUTS SHAPE: ", inputs.shape)
-    with tf.variable_scope('base'):
-        model = ClockStep(num_classes=NUM_CLASSES)
-        logits = model._build(inputs)
+    # with tf.variable_scope('base'):
+        # model = ClockStep(num_classes=NUM_CLASSES)
+    logits = model._build(inputs)
     return logits
 
 
-def tower_inference(rgb_inputs, labels):
-    rgb_logits = inference(rgb_inputs)
+def tower_inference(model, rgb_inputs, labels):
+    rgb_logits = inference(model, rgb_inputs)
     return tf.reduce_mean(
         tf.nn.sparse_softmax_cross_entropy_with_logits(
             labels=labels, logits=rgb_logits)), rgb_logits
@@ -119,13 +120,15 @@ if __name__ == '__main__':
     val_iterator = tf.data.Iterator.from_structure(val_queue.output_types, val_queue.output_shapes)
     val_init_op = val_iterator.make_initializer(val_queue)
 
+    model = ClockStep(num_classes=NUM_CLASSES)
+
     with tf.variable_scope(tf.get_variable_scope()):
         for i in range(NUM_GPUS):
             with tf.name_scope('tower_%d' % i) as scope:
                 rgbs, labels = tf.cond(is_training, lambda: train_iterator.get_next(),
                                        lambda: val_iterator.get_next())
                 with tf.device('/gpu:%d' % i):
-                    loss, logits = tower_inference(rgbs, labels)
+                    loss, logits = tower_inference(model, rgbs, labels)
                     summaries = tf.get_collection(tf.GraphKeys.SUMMARIES, scope)
                     tf.get_variable_scope().reuse_variables()
                     grads = opt.compute_gradients(loss)
@@ -155,9 +158,14 @@ if __name__ == '__main__':
     if not os.path.exists(ckpt_path):
         os.mkdir(ckpt_path)
 
-
     with tf.Session() as sess:
+        sess.run(train_init_op)
+        sess.run(val_init_op)
         sess.run(tf.global_variables_initializer())
+        all_vars = tf.all_variables()
+        model_vars = [k for k in all_vars if k.name.startswith("clock_flow")]
+        model.init_flow(model_vars)
+        model.init_rgb()
         # experiment.set_model_graph(sess.graph)
 
         # rgb_def_state = get_pretrained_save_state()
@@ -181,7 +189,7 @@ if __name__ == '__main__':
         last_step = 0
         val_time = 0
         for epoch in range(MAX_EPOCH):
-            sess.run(train_init_op)
+            # sess.run(train_init_op)
             while True:
                 # print('==== EPOCH : ' + str(epoch) + ' || iter : ' + str(it))
                 try:
@@ -205,7 +213,7 @@ if __name__ == '__main__':
                         saver.save(sess, os.path.join(ckpt_path, 'model_ckpt'), it)
 
                     if it % VAL_ITER == 0 and it > 0:
-                        sess.run(val_init_op)
+                        # sess.run(val_init_op)
                         val_start = time.time()
                         tf.logging.info('validating...')
                         true_count = 0

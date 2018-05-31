@@ -24,20 +24,6 @@ init_op = iterator.make_initializer(queue)
 
 rgb, labels = iterator.get_next()
 
-#with tf.variable_scope('clocknet'):
-# model = ClockStep(num_classes=10)
-# mem = model._build(rgb)
-
-# v_flow = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope='clock_flow')
-# print("LEN OF VARS")
-# print(len(v_flow))
-# if len(v_flow) > 0:
-#     print(v_flow[0])
-#     print(v_flow[1])
-#     print(v_flow[2])
-#
-# v_dict = {v.op.name: v for v in v_flow}
-
 with tf.Session() as sess:
     sess.run(init_op)
     model = ClockStep(num_classes=10)
