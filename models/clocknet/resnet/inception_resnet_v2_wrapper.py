@@ -13,7 +13,6 @@ class InceptionResNetV2:
         self._build_graph(input_tensor)
 
     def _build_graph(self, input_tensor):
-        sess = tf.get_default_session()
         with tf.variable_scope('IRV2'):
             with tf.name_scope('inputs'):
                 self.input_tensor = input_tensor
@@ -26,14 +25,19 @@ class InceptionResNetV2:
 
         self.irv2_weights = tf.get_collection(tf.GraphKeys.VARIABLES, scope='clock_rgb/IRV2/model')
 
-        with tempfile.NamedTemporaryFile() as f:
-            self.tf_checkpoint_path = tf.train.Saver(self.irv2_weights).save(sess, f.name)
+        # with tempfile.NamedTemporaryFile() as f:
+        #     self.tf_checkpoint_path = tf.train.Saver(self.irv2_weights).save(sess, f.name)
 
         self.model_weights_tensors = set(self.irv2_weights)
 
-    def load_weights(self):
+    def save_weights(self):
         sess = tf.get_default_session()
-        tf.train.Saver(self.irv2_weights).restore(sess, self.tf_checkpoint_path)
+        with tempfile.NamedTemporaryFile() as f:
+            return tf.train.Saver(self.irv2_weights).save(sess, f.name)
+
+    def load_weights(self, checkpoint_path):
+        sess = tf.get_default_session()
+        tf.train.Saver(self.irv2_weights).restore(sess, checkpoint_path)
 
     def __getitem__(self, key):
         return self.outputs[key]

@@ -25,11 +25,11 @@ class ClockStep:
         self.mem_w = W_f
         self.df = D_f
         self.input_tensor = tf.placeholder(tf.float32, (64, 299, 299, 3), name='rgb_image')
-        # with tf.variable_scope("clock_flow", reuse=tf.AUTO_REUSE):
-        #     self.clock_flow = ClockFlow()
-        # 
-        # with tf.variable_scope("clock_rgb", reuse=tf.AUTO_REUSE):
-        #     self.clock_rgb = inception_resnet_v2_wrapper.InceptionResNetV2(input_tensor=self.input_tensor)
+        with tf.variable_scope("clock_flow", reuse=tf.AUTO_REUSE):
+            self.clock_flow = ClockFlow()
+
+        with tf.variable_scope("clock_rgb", reuse=tf.AUTO_REUSE):
+            self.clock_rgb = inception_resnet_v2_wrapper.InceptionResNetV2(input_tensor=self.input_tensor)
 
     def init_core(self):
         with tf.variable_scope("clock_flow", reuse=tf.AUTO_REUSE):
@@ -42,7 +42,8 @@ class ClockStep:
         self.clock_flow.load(vars)
 
     def init_rgb(self):
-        self.clock_rgb.load_weights()
+        checkpoint_path = self.clock_rgb.save_weights()
+        self.clock_rgb.load_weights(checkpoint_path)
 
     def compute_mem(self, memory, flow):
         x_flow = tf.slice(flow, [0, 0, 0], [-1, -1, 1])
