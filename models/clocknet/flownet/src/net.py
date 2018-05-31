@@ -84,10 +84,9 @@ class Net(object):
         print("******* FLOW NET SESSION RESTORED ********")
         saver.restore(sess, checkpoint)
 
-    def compute_flow(self, input_a, input_b, checkpoint=CKPT_LOC):
+    def compute_flow(self, input_a, input_b):
         """
         computes optical flow using & down samples bi-linearly to h_f & w_f
-        :param checkpoint: checkpoint location
         :param input_a: rgb input frame (prev)
         :param input_b: rgb input frame (curr)
         :return: h_f x w_f x 2 flow information
@@ -105,6 +104,22 @@ class Net(object):
             'input_a': tf.expand_dims(input_a, 0),
             'input_b': tf.expand_dims(input_b, 0),
         }
+        # input_a = input_a[..., [2, 1, 0]]
+        # input_b = input_b[..., [2, 1, 0]]
+        #
+        # # Scale from [0, 255] -> [0.0, 1.0] if needed
+        # if input_a.max() > 1.0:
+        #     input_a = input_a / 255.0
+        # if input_b.max() > 1.0:
+        #     input_b = input_b / 255.0
+        #
+        # # TODO: This is a hack, we should get rid of this
+        # training_schedule = LONG_SCHEDULE
+        #
+        # inputs = {
+        #     'input_a': tf.expand_dims(tf.constant(input_a, dtype=tf.float32), 0),
+        #     'input_b': tf.expand_dims(tf.constant(input_b, dtype=tf.float32), 0),
+        # }
         predictions = self.model(inputs, training_schedule)
         flow = predictions['flow']
         pred_flow = tf.image.resize_bilinear(flow, tf.stack([H_f, W_f]), align_corners=True)
