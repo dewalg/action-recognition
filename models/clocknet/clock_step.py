@@ -7,9 +7,9 @@ Video Representations" by Vu et al.
 import time
 import numpy as np
 import tensorflow as tf
-from .clock_flow import ClockFlow
-from .clock_rgb import ClockRgb
-from .resnet import inception_resnet_v2_wrapper
+# from .clock_flow import ClockFlow
+# from .clock_rgb import ClockRgb
+# from .resnet import inception_resnet_v2_wrapper
 
 # debug flag for debugging outputs
 _DEBUG = False
@@ -24,26 +24,30 @@ class ClockStep:
         self.mem_h = H_f
         self.mem_w = W_f
         self.df = D_f
-        self.input_tensor = tf.placeholder(tf.float32, (64, 299, 299, 3), name='rgb_image')
-        with tf.variable_scope("clock_flow", reuse=tf.AUTO_REUSE):
-            self.clock_flow = ClockFlow()
+        # self.input_tensor = tf.placeholder(tf.float32, (64, 299, 299, 3), name='rgb_image')
+        # self.resnet = inception_resnet_v2_wrapper.InceptionResNetV2()
+        # with tf.variable_scope("clock_flow", reuse=tf.AUTO_REUSE):
+        #     self.clock_flow = ClockFlow()
 
-        with tf.variable_scope("clock_rgb", reuse=tf.AUTO_REUSE):
-            self.clock_rgb = inception_resnet_v2_wrapper.InceptionResNetV2(input_tensor=self.input_tensor)
+        # with tf.variable_scope("clock_rgb", reuse=tf.AUTO_REUSE):
+        #     self.clock_rgb = inception_resnet_v2_wrapper.InceptionResNetV2(input_tensor=self.input_tensor)
 
-    def init_core(self):
-        with tf.variable_scope("clock_flow", reuse=tf.AUTO_REUSE):
-            self.clock_flow = ClockFlow()
+    # def init_core(self):
+        # with tf.variable_scope("clock_flow", reuse=tf.AUTO_REUSE):
+        #     self.clock_flow = ClockFlow()
 
-        with tf.variable_scope("clock_rgb", reuse=tf.AUTO_REUSE):
-            self.clock_rgb = inception_resnet_v2_wrapper.InceptionResNetV2(input_tensor=self.input_tensor)
+        # with tf.variable_scope("clock_rgb", reuse=tf.AUTO_REUSE):
+        #     self.clock_rgb = inception_resnet_v2_wrapper.InceptionResNetV2(input_tensor=self.input_tensor)
 
-    def init_flow(self, vars=None):
-        self.clock_flow.load(vars)
+    # def init_flow(self, vars=None):
+    #     self.clock_flow.load(vars)
 
-    def init_rgb(self):
-        checkpoint_path = self.clock_rgb.save_weights()
-        self.clock_rgb.load_weights(checkpoint_path)
+    # def init_rgb(self):
+        # with tf.variable_scope("clock_rgb", reuse=tf.AUTO_REUSE):
+        # inception_resnet_v2_wrapper.InceptionResNetV2().load_weights()
+        # self.resnet.load_weights()
+        # checkpoint_path = self.clock_rgb.save_weights()
+        # self.clock_rgb.load_weights(checkpoint_path)
 
     def compute_mem(self, memory, flow):
         x_flow = tf.slice(flow, [0, 0, 0], [-1, -1, 1])
@@ -168,18 +172,27 @@ class ClockStep:
         out = tf.layers.dense(tf.reshape(out, [1, -1]), self.num_classes, activation=tf.nn.relu, use_bias=True)
         return tf.nn.softmax(out)
 
-    def _build(self, inputs):
+    def _build(self, inputs, rgbs):
         if _DEBUG: print("DEBUG: ClockStep = INPUTS SHAPE = ", inputs.shape)
 
         with tf.variable_scope('clock_flow', reuse=tf.AUTO_REUSE):
-            flows = self.clock_flow._build(inputs[0])
+            # flows = self.clock_flow._build(inputs[0])
+            flows = tf.random_uniform([64, 17, 17, 3], maxval=1.0)
 
-        with tf.variable_scope('clock_rgb', reuse=tf.AUTO_REUSE):
-            sess = tf.get_default_session()
-            inputs_rgb = sess.run(inputs)
-            inputs_rgb = np.array(inputs_rgb[0]).reshape((64, 299, 299, 3)).astype(np.float32)
-            rgbs = tf.identity(self.clock_rgb['mixed_6a'], name='rgb_output')
-            rgbs = sess.run(rgbs, feed_dict={self.input_tensor: inputs_rgb})
+        # with tf.variable_scope('clock_rgb', reuse=tf.AUTO_REUSE):
+            # sess = tf.get_default_session()
+            # inputs_rgb = sess.run(inputs)
+        # print(inputs)
+        # inputs_rgb = np.array(inputs).reshape((64, 299, 299, 3)).astype(np.float32)
+        # inputs_rgb = tf.reshape(inputs, shape=[64, 299, 299, 3])
+
+            # out = tf.keras.applications.InceptionResNetV2(weights='imagenet', include_top=False,
+            #                                               input_tensor=inputs_rgb, input_shape=[64, 299, 299, 3])
+            # rgbs = tf.identity(self.clock_rgb['mixed_6a'], name='rgb_output')
+            # rgbs = sess.run(rgbs, feed_dict={self.input_tensor: inputs_rgb})
+        # print(inputs_rgb)
+        # out = self.resnet(input_tensor=inputs_rgb)
+        # rgbs = tf.identity(out['mixed_6a'], name='resnet_out')
 
         initial_state = tf.zeros([self.mem_w, self.mem_h, self.df])
         memory = tf.scan(self.iterate, (flows, rgbs), initializer=initial_state)

@@ -3,6 +3,10 @@ from configparser import ConfigParser, ExtendedInterpolation
 import numpy as np
 from clocknet.clock_step import ClockStep
 import tensorflow as tf
+from resnet import inception_resnet_v2_wrapper
+import matplotlib as mpl
+mpl.use('TkAgg')
+import matplotlib.pyplot as plt
 
 config = ConfigParser(interpolation=ExtendedInterpolation())
 config.read('../config/config.ini')
@@ -24,16 +28,29 @@ init_op = iterator.make_initializer(queue)
 
 rgb, labels = iterator.get_next()
 
-with tf.Session() as sess:
-    sess.run(init_op)
-    model = ClockStep(num_classes=10)
-    mem = model._build(rgb)
-    sess.run(tf.global_variables_initializer())
-    all_vars = tf.all_variables()
-    model_vars = [k for k in all_vars if k.name.startswith("clock_flow")]
-    model.init_flow(model_vars)
-    model.init_rgb()
+rgb_reshaped = tf.reshape(rgb, [64, 299, 299, 3])
+resnet = inception_resnet_v2_wrapper.InceptionResNetV2(input_tensor=rgb_reshaped)
+resnet_out = tf.identity(resnet['mixed_6a'], name='rgb_resnet_out')
+model = ClockStep(num_classes=10)
+mem = model._build(rgb, resnet_out)
 
+with tf.Session() as sess:
+
+    sess.run(init_op)
+    sess.run(tf.global_variables_initializer())
+    resnet.load_weights()
+
+    # USE BELOW TO SEE PLOT OF LOADED WEIGHTS
+    # w = resnet.irv2.get_layer('conv2d_78').get_weights()[0]
+    # plt.hist(w.flatten())
+    # plt.show()
+
+    # USE BELOW TO SEE ALL LAYERS AND THEIR WEIGHTS
+    # for layer in irv2.layers:
+    #     w = layer.get_weights()
+    #     print(layer.name + " " + str(len(w)))
+
+    # USE BELOW TO RUN PROFILER ON CLOCKNET
     writer = tf.summary.FileWriter("./profiler", sess.graph)
 
     run_options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
@@ -41,3 +58,4 @@ with tf.Session() as sess:
     mem = sess.run([mem], options=run_options, run_metadata=run_metadata)
     writer.add_run_metadata(run_metadata, 'step001')
     print(np.array(mem).shape)
+    writer.close()
