@@ -49,9 +49,9 @@ class ClockFlow:
                     memory = tf.scan(self.iterate, inputs, initializer=initial_state)
                     self.out = memory
 
-            self.flow_weights = tf.get_collection(tf.GraphKeys.VARIABLES, scope='Flow/model')
-            with tempfile.NamedTemporaryFile() as f:
-                self.tf_flow_ckpt_file = tf.train.Saver(self.flow_weights).save(sess, f.name)
+            self.flow_weights = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope='Flow/model')
+            # with tempfile.NamedTemporaryFile() as f:
+            #     self.tf_flow_ckpt_file = tf.train.Saver(self.flow_weights).save(sess, f.name)
 
     def save_weights(self):
         sess = tf.get_default_session()

@@ -2,9 +2,9 @@ from pipeline import Pipeline
 from configparser import ConfigParser, ExtendedInterpolation
 import numpy as np
 from clocknet.clock_step import ClockStep
-from clock_flow import ClockFlow
+from clocknet.clock_flow import ClockFlow
 import tensorflow as tf
-from resnet import inception_resnet_v2_wrapper
+from clocknet.resnet import inception_resnet_v2_wrapper
 import matplotlib as mpl
 mpl.use('TkAgg')
 import matplotlib.pyplot as plt
@@ -33,7 +33,7 @@ rgb_reshaped = tf.reshape(rgb, [64, 299, 299, 3])
 resnet = inception_resnet_v2_wrapper.InceptionResNetV2(input_tensor=rgb_reshaped)
 resnet_out = tf.identity(resnet['mixed_6a'], name='rgb_resnet_out')
 
-flow = ClockFlow(inputs=rgb)
+flow = ClockFlow(inputs=rgb_reshaped)
 flow_out = flow.get_flow()
 
 model = ClockStep(num_classes=10)
