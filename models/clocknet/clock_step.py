@@ -183,11 +183,11 @@ class ClockStep:
         memory = tf.scan(self.iterate, (flows, rgbs), initializer=initial_state)
 
         with tf.variable_scope("output"):
-            out = self.out(memory[-1])
+            result = self.out(memory[-1])
 
         # out = tf.Print(out, [tf.shape(out)], "FINAL shape: ")
 
-        return out
+        return result
 
 if __name__ == '__main__':
     model = ClockStep(num_classes=10)

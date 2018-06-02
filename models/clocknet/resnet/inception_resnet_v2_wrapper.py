@@ -22,7 +22,7 @@ class InceptionResNetV2:
 
                 with tf.variable_scope('model'):
                     self.irv2 = tf.keras.applications.InceptionResNetV2(weights='imagenet', include_top=False,
-                                                                        input_tensor=self.input_tensor, input_shape=self._shape)
+                                                                        input_tensor=input_tensor, input_shape=self._shape)
 
                 self.outputs = {l.name: l.output for l in self.irv2.layers}
 
@@ -32,6 +32,11 @@ class InceptionResNetV2:
             # TODO - this saves to a temp file, we need to make it more permanent
             with tempfile.NamedTemporaryFile() as f:
                 self.tf_checkpoint_path = tf.train.Saver(self.irv2_weights).save(sess, f.name)
+                # if len(self.irv2_weights) == 0:
+                #     print("NO SAVE ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+                # else:
+                #     self.tf_checkpoint_path = tf.train.Saver(self.irv2_weights).save(sess, f.name)
+                #     print("YES SAVE ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
 
             self.model_weights_tensors = set(self.irv2_weights)
 
