@@ -2,6 +2,7 @@ from pipeline import Pipeline
 from configparser import ConfigParser, ExtendedInterpolation
 import numpy as np
 from clocknet.clock_step import ClockStep
+from clock_flow import ClockFlow
 import tensorflow as tf
 from resnet import inception_resnet_v2_wrapper
 import matplotlib as mpl
@@ -31,16 +32,21 @@ rgb, labels = iterator.get_next()
 rgb_reshaped = tf.reshape(rgb, [64, 299, 299, 3])
 resnet = inception_resnet_v2_wrapper.InceptionResNetV2(input_tensor=rgb_reshaped)
 resnet_out = tf.identity(resnet['mixed_6a'], name='rgb_resnet_out')
+
+flow = ClockFlow(inputs=rgb)
+flow_out = flow.get_flow()
+
 model = ClockStep(num_classes=10)
-mem = model._build(rgb, resnet_out)
+mem = model._build(rgb, resnet_out, flow_out)
 
 with tf.Session() as sess:
 
     sess.run(init_op)
     sess.run(tf.global_variables_initializer())
     resnet.load_weights()
+    flow.load_weights()
 
-    # USE BELOW TO SEE PLOT OF LOADED WEIGHTS
+    # USE BELOW TO SEE PLOT OF RESNET LOADED WEIGHTS
     # w = resnet.irv2.get_layer('conv2d_78').get_weights()[0]
     # plt.hist(w.flatten())
     # plt.show()
@@ -57,5 +63,5 @@ with tf.Session() as sess:
     run_metadata = tf.RunMetadata()
     mem = sess.run([mem], options=run_options, run_metadata=run_metadata)
     writer.add_run_metadata(run_metadata, 'step001')
-    print(np.array(mem).shape)
+    print(mem)
     writer.close()

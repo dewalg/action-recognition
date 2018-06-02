@@ -172,27 +172,12 @@ class ClockStep:
         out = tf.layers.dense(tf.reshape(out, [1, -1]), self.num_classes, activation=tf.nn.relu, use_bias=True)
         return tf.nn.softmax(out)
 
-    def _build(self, inputs, rgbs):
+    def _build(self, inputs, rgbs, flows):
         if _DEBUG: print("DEBUG: ClockStep = INPUTS SHAPE = ", inputs.shape)
 
-        with tf.variable_scope('clock_flow', reuse=tf.AUTO_REUSE):
-            # flows = self.clock_flow._build(inputs[0])
-            flows = tf.random_uniform([64, 17, 17, 3], maxval=1.0)
-
-        # with tf.variable_scope('clock_rgb', reuse=tf.AUTO_REUSE):
-            # sess = tf.get_default_session()
-            # inputs_rgb = sess.run(inputs)
-        # print(inputs)
-        # inputs_rgb = np.array(inputs).reshape((64, 299, 299, 3)).astype(np.float32)
-        # inputs_rgb = tf.reshape(inputs, shape=[64, 299, 299, 3])
-
-            # out = tf.keras.applications.InceptionResNetV2(weights='imagenet', include_top=False,
-            #                                               input_tensor=inputs_rgb, input_shape=[64, 299, 299, 3])
-            # rgbs = tf.identity(self.clock_rgb['mixed_6a'], name='rgb_output')
-            # rgbs = sess.run(rgbs, feed_dict={self.input_tensor: inputs_rgb})
-        # print(inputs_rgb)
-        # out = self.resnet(input_tensor=inputs_rgb)
-        # rgbs = tf.identity(out['mixed_6a'], name='resnet_out')
+        # with tf.variable_scope('clock_flow', reuse=tf.AUTO_REUSE):
+        #     # flows = self.clock_flow._build(inputs[0])
+        #     flows = tf.random_uniform([64, 17, 17, 3], maxval=1.0)
 
         initial_state = tf.zeros([self.mem_w, self.mem_h, self.df])
         memory = tf.scan(self.iterate, (flows, rgbs), initializer=initial_state)

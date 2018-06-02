@@ -29,6 +29,7 @@ class InceptionResNetV2:
             # self.irv2_weights = tf.get_collection(tf.GraphKeys.VARIABLES, scope='clock_rgb/IRV2/model')
             self.irv2_weights = tf.get_collection(tf.GraphKeys.VARIABLES, scope='IRV2/model')
 
+            # TODO - this saves to a temp file, we need to make it more permanent
             with tempfile.NamedTemporaryFile() as f:
                 self.tf_checkpoint_path = tf.train.Saver(self.irv2_weights).save(sess, f.name)
 
